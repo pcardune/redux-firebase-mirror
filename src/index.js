@@ -161,7 +161,7 @@ export function valuesAtPaths(state: any, paths: string[]) {
  * @param config.storagePrefix an optional prefix for the keys used in local
  *        storage
  */
-export function configureModule(config: {
+export function configureReducer(config: {
   getFirebaseState: (state: any) => Immutable.Map<string, *>,
   persistToLocalStorage?: ?boolean,
   storagePrefix?: ?string,

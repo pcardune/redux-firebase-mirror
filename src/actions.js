@@ -1,5 +1,8 @@
+/**
+ * @module redux action creators
+ */
+
 //@flow
-// import type {State, ThunkAction} from './redux/types';
 import type {
   Dispatch as ReduxDispatch,
   ThunkAction as ReduxThunkAction,
@@ -23,7 +26,6 @@ function receiveSnapshot(snapshot) {
     value: snapshot.val(),
   };
 }
-
 
 /**
  * Subscribe to `'value'` changes for the specified list of paths in firebase.

@@ -53,12 +53,14 @@
   "dependencies": {
     "immutable": "^3.8.1",
     "redux-immutable": "^3.0.8",
-    "reselect": "^2.5.4"
+    "reselect": "^2.5.4",
+    "firebase": "^3.6.2"
+  },
+  "optionalDependencies": {
+    "react": "^15.4.1",
+    "react-redux": "^4.4.6"    
   },
   "peerDependencies": {
-    "firebase": "^3.6.2",
-    "react": "^15.4.1",
-    "react-redux": "^4.4.6",
     "redux": "^3.6.0",
     "redux-thunk": "^2.1.0"
   }

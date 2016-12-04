@@ -5,7 +5,7 @@ import firebase from 'firebase';
 import type {Store} from 'redux';
 import * as Immutable from 'immutable';
 
-import {configureModule} from '../index';
+import {configureReducer} from '../index';
 
 import type {Action} from '../actions';
 import {
@@ -36,7 +36,7 @@ describe("The actions module", () => {
       },
     ];
     store = createStore(
-      configureModule({
+      configureReducer({
         getFirebaseState: (state) => state,
       }),
       Immutable.Map(),
