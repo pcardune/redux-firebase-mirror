@@ -4,8 +4,7 @@ import * as Immutable from 'immutable';
 import {connect} from 'react-redux';
 import {createSelector} from 'reselect';
 import {compose} from 'redux';
-import type {Store} from 'redux';
-import type {State, Dispatch} from './redux/types';
+import type {Store, Dispatch} from 'redux';
 import cachingStorageReducer from './cachingStorageReducer';
 import immutableReducer from './immutableReducer';
 import * as actions from './actions';
@@ -17,7 +16,7 @@ type JSONArray = Array<JSONType>;
 
 const CONFIG: {
   localStoragePrefix: string,
-  getFirebaseState: (state: State) => Immutable.Map<string, *>,
+  getFirebaseState: <S>(state: S) => Immutable.Map<string, *>,
 } = {
   localStoragePrefix: '',
   getFirebaseState() {
@@ -26,7 +25,7 @@ const CONFIG: {
 };
 
 // ---------------- selectors --------------
-function getFirebaseState(state: State): Immutable.Map<string, Immutable.Map<string, mixed>> {
+function getFirebaseState(state: *): Immutable.Map<string, Immutable.Map<string, mixed>> {
   const firebaseState = CONFIG.getFirebaseState(state);
   return firebaseState;
 }
@@ -36,7 +35,7 @@ const getFirebaseSubscriptions = createSelector(
   firebaseState => firebaseState.get('subscriptions')
 );
 
-export function isSubscribedToValue(state: State, path: string): boolean {
+export function isSubscribedToValue(state: any, path: string): boolean {
   // TODO: since we are pretending to have subscribed to all subpaths
   // we should make sure to resubscribe them if we unsubscribe from the
   // parent path!
@@ -92,11 +91,11 @@ export function subscribePaths<RS, NP:Object, D, P:Object, S, C: React$Component
   return (ComponentToWrap: Class<C>) => {
     return connect(
       (state: RS)=>({state}),
-      (dispatch: Dispatch) => ({dispatch})
+      (dispatch: Dispatch<*, *>) => ({dispatch})
     )(class WrapperComponent extends Component {
 
       props: NP & P & {
-        dispatch: Dispatch,
+        dispatch: Dispatch<*, *>,
         state: RS,
       };
 
@@ -138,11 +137,11 @@ export function keysAtPath(state: any, props: any, path: string | string[]) {
   return map.keySeq().toArray();
 }
 
-export function valueAtPath(state: State, path: string) {
+export function valueAtPath(state: any, path: string) {
   return getFirebaseMirror(state).getIn(path.split('/'));
 }
 
-export function valuesAtPaths(state: State, paths: string[]) {
+export function valuesAtPaths(state: any, paths: string[]) {
   const values:Immutable.Map<string, mixed> = Immutable.Map();
   return values.withMutations(values => {
     paths.forEach(path => {
@@ -154,6 +153,7 @@ export function valuesAtPaths(state: State, paths: string[]) {
 
 /**
  * Configure the redux-firebase-mirror module.
+ * @param config configuration required to use `redux-firebase-mirror`
  * @param config.getFirebaseState a function that returns the subtree of the
  *        redux state where the reducer was applied.
  * @param config.persistToLocalStorage whether or not to persist firebase
@@ -162,7 +162,7 @@ export function valuesAtPaths(state: State, paths: string[]) {
  *        storage
  */
 export function configureModule(config: {
-  getFirebaseState(state: any): Immutable.Map<string, *>,
+  getFirebaseState: (state: any) => Immutable.Map<string, *>,
   persistToLocalStorage?: ?boolean,
   storagePrefix?: ?string,
 }): typeof immutableReducer {

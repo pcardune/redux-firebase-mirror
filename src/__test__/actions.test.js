@@ -2,9 +2,12 @@
 import {createStore, applyMiddleware} from 'redux';
 import thunkMiddleware from 'redux-thunk';
 import firebase from 'firebase';
+import type {Store} from 'redux';
+import * as Immutable from 'immutable';
 
 import {configureModule} from '../index';
 
+import type {Action} from '../actions';
 import {
   subscribeToValues,
   unsubscribeFromValues,
@@ -21,22 +24,22 @@ function mockSnapshot(path, value) {
 }
 
 describe("The actions module", () => {
-  let store, dispatchedActions;
+  let store: Store<*, Action>, dispatchedActions;
   beforeEach(() => {
     dispatchedActions = [];
     const middlewares = [
       thunkMiddleware,
       () => next => (action: any) => {
         dispatchedActions.push(action);
+        // $FlowFixMe
         return next(action);
       },
     ];
     store = createStore(
       configureModule({
-        getFirebaseState(state) {
-          return state;
-        },
+        getFirebaseState: (state) => state,
       }),
+      Immutable.Map(),
       applyMiddleware(...middlewares)
     );
   });

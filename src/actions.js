@@ -1,9 +1,20 @@
 //@flow
-import type {State, Dispatch, ThunkAction} from './redux/types';
+// import type {State, ThunkAction} from './redux/types';
+import type {
+  Dispatch as ReduxDispatch,
+  ThunkAction as ReduxThunkAction,
+} from 'redux';
 import firebase from 'firebase';
 
 import type {JSONType} from './index';
 import {isSubscribedToValue} from './index';
+export type Action =
+  | {type: 'FIREBASE/RECEIVE_SNAPSHOT', path: string, value: JSONType}
+  | {type: 'FIREBASE/UNSUBSCRIBE_FROM_VALUES', paths: string[]}
+  | {type: 'FIREBASE/SUBSCRIBE_TO_VALUES', paths: string[]};
+
+type Dispatch = ReduxDispatch<*, Action>;
+type ThunkAction<R> = ReduxThunkAction<*, R>;
 
 function receiveSnapshot(snapshot) {
   return {
@@ -13,19 +24,14 @@ function receiveSnapshot(snapshot) {
   };
 }
 
-export type Action =
-  | {type: 'FIREBASE/RECEIVE_SNAPSHOT', path: string, value: JSONType}
-  | {type: 'FIREBASE/UNSUBSCRIBE_FROM_VALUE', path: string}
-  | {type: 'FIREBASE/SUBSCRIBE_TO_VALUES', paths: string[]};
 
 /**
  * Subscribe to `'value'` changes for the specified list of paths in firebase.
  * @param paths the list of paths to subscribe to.
  */
-export function subscribeToValues(paths: string[]) {
-  return (dispatch: Dispatch, getState: () => State) => {
-    const state = getState();
-    paths = paths.filter(path => !isSubscribedToValue(state, path));
+export function subscribeToValues<S>(paths: string[]): ThunkAction<void> {
+  return (dispatch: Dispatch, getState: () => S) => {
+    paths = paths.filter(path => !isSubscribedToValue(getState(), path));
     if (paths.length == 0) {
       return;
     }
@@ -43,7 +49,7 @@ export function subscribeToValues(paths: string[]) {
  * @param callback function to call when all the data has been fetched.
  */
 export function fetchValues(paths: string[], callback: ?() => void): ThunkAction<void> {
-  return (dispatch) => {
+  return (dispatch: Dispatch) => {
     let numLeft = paths.length;
     const dispatchSnapshot = snapshot => {
       dispatch(receiveSnapshot(snapshot));
@@ -64,7 +70,7 @@ export function fetchValues(paths: string[], callback: ?() => void): ThunkAction
  * @param paths the list of paths to unsubscribe from.
  */
 export function unsubscribeFromValues(paths: string[]) {
-  return (dispatch: Dispatch, getState: () => State) => {
+  return (dispatch: Dispatch, getState: () => *) => {
     paths = paths.filter(path => isSubscribedToValue(getState(), path));
     if (paths.length === 0) {
       return;

@@ -8,6 +8,7 @@
 .*/node_modules/react-leaflet/.*
 .*/node_modules/config-chain/.*
 .*/node_modules/npmconf/.*
+.*/node_modules/conventional-changelog-core/.*
 <PROJECT_ROOT>/[^/]*\.js
 <PROJECT_ROOT>/build/.*
 <PROJECT_ROOT>/dlls/.*
