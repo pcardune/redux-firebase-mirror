@@ -1,0 +1,36 @@
+{
+  "parser": "babel-eslint",
+  "rules": {
+    "comma-dangle": 0,
+    "indent": [2, 2, {"SwitchCase": 1}],
+    "linebreak-style": [2, "unix"],
+    "semi": [2, "always"],
+    "no-console": 0,
+    "react/prop-types": 0,
+    "react/jsx-filename-extension": "off",
+    "react/no-multi-comp": "off",
+    "react/prefer-stateless-function": "off",
+    "react/sort-comp": "off",
+    "react/no-unused-prop-types": "off"
+  },
+  "env": {
+    "es6": true,
+    "jest": true,
+    "jasmine": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "plugin:flowtype/recommended"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 7,
+    "ecmaFeatures": {
+      "jsx": true,
+    },
+  },
+  "plugins": [
+    "react",
+    "flowtype",
+  ]
+}
