@@ -1,16 +1,17 @@
 //@flow
 import React, {Component} from 'react';
-import firebase from 'firebase';
 import * as Immutable from 'immutable';
 import {connect} from 'react-redux';
 import {createSelector} from 'reselect';
 import {compose} from 'redux';
 import type {Store} from 'redux';
-import type {State, Dispatch, ThunkAction} from './redux/types';
+import type {State, Dispatch} from './redux/types';
 import cachingStorageReducer from './cachingStorageReducer';
 import immutableReducer from './immutableReducer';
+import * as actions from './actions';
+export * from './actions';
 
-type JSONType = | string | number | boolean | null | JSONObject | JSONArray;
+export type JSONType = | string | number | boolean | null | JSONObject | JSONArray;
 type JSONObject = { [key: string]: JSONType };
 type JSONArray = Array<JSONType>;
 
@@ -23,63 +24,6 @@ const CONFIG: {
     throw new Error("redux-firebase has not been configured");
   }
 };
-
-function receiveSnapshot(snapshot) {
-  return {
-    type: 'FIREBASE/RECEIVE_SNAPSHOT',
-    path: snapshot.ref.toString().split('/').slice(3).join('/'),
-    value: snapshot.val(),
-  };
-}
-
-export type Action =
-  | {type: 'FIREBASE/RECEIVE_SNAPSHOT', path: string, value: JSONType}
-  | {type: 'FIREBASE/UNSUBSCRIBE_FROM_VALUE', path: string}
-  | {type: 'FIREBASE/SUBSCRIBE_TO_VALUES', paths: string[]};
-
-// ----------- actions -------
-export function subscribeToValues(paths: string[]) {
-  return (dispatch: Dispatch, getState: () => State) => {
-    const state = getState();
-    paths = paths.filter(path => !isSubscribedToValue(state, path));
-    if (paths.length == 0) {
-      return;
-    }
-    dispatch({type: 'FIREBASE/SUBSCRIBE_TO_VALUES', paths});
-    const dispatchSnapshot = snapshot => dispatch(receiveSnapshot(snapshot));
-    paths.forEach(path => {
-      firebase.database().ref(path).on('value', dispatchSnapshot);
-    });
-  };
-}
-
-export function fetchValues(paths: string[], callback: ?() => void): ThunkAction<void> {
-  return (dispatch) => {
-    let numLeft = paths.length;
-    const dispatchSnapshot = snapshot => {
-      dispatch(receiveSnapshot(snapshot));
-      numLeft--;
-      if (numLeft === 0) {
-        callback && callback();
-      }
-    };
-    paths.forEach(path => firebase.database().ref(path).once(
-      'value',
-      dispatchSnapshot,
-    ));
-  };
-}
-
-export function unsubscribeFromValues(paths: string[]) {
-  return (dispatch: Dispatch, getState: () => State) => {
-    paths = paths.filter(path => isSubscribedToValue(getState(), path));
-    if (paths.length === 0) {
-      return;
-    }
-    paths.forEach(path => firebase.database().ref(path).off('value'));
-    dispatch({type: 'FIREBASE/UNSUBSCRIBE_FROM_VALUES', paths});
-  };
-}
 
 // ---------------- selectors --------------
 function getFirebaseState(state: State): Immutable.Map<string, Immutable.Map<string, mixed>> {
@@ -127,7 +71,7 @@ export class Subscription<S, P, R> {
     return new Promise((resolve) => {
       let paths = Immutable.Set(this.paths(store.getState(), props));
       store.dispatch(
-        fetchValues(paths.toJS(), () => {
+        actions.fetchValues(paths.toJS(), () => {
           let newPaths = Immutable.Set(this.paths(store.getState(), props));
           if (newPaths.subtract(paths).size == 0) {
             resolve(this.value(store.getState(), props));
@@ -157,7 +101,7 @@ export function subscribePaths<RS, NP:Object, D, P:Object, S, C: React$Component
       };
 
       componentDidMount() {
-        this.props.dispatch(subscribeToValues(mapPropsToPaths(this.props.state, this.props)));
+        this.props.dispatch(actions.subscribeToValues(mapPropsToPaths(this.props.state, this.props)));
       }
 
       componentDidUpdate() {
@@ -168,7 +112,7 @@ export function subscribePaths<RS, NP:Object, D, P:Object, S, C: React$Component
         // so to play it safe, ditch this micro-opitmization for now.
         // const prevPaths = new Set(mapPropsToPaths(this.props.state, prevProps));
         // const newPaths = paths.filter(path => !prevPaths.has(path));
-        this.props.dispatch(subscribeToValues(paths));
+        this.props.dispatch(actions.subscribeToValues(paths));
       }
 
       render() {
