@@ -11,7 +11,8 @@
   "license": "MIT",
   "scripts": {
     "test": "jest",
-    "build": "babel -d dist src/"
+    "build": "babel -d dist src/",
+    "docs": "documentation build -f html -o docs src/**/*.js"
   },
   "jest": {
     "setupTestFrameworkScriptFile": "./setupJasmineEnv.js",
@@ -35,6 +36,7 @@
     "babel-preset-es2015": "^6.18.0",
     "babel-preset-react": "^6.16.0",
     "babel-preset-stage-1": "^6.16.0",
+    "documentation": "^4.0.0-beta15",
     "eslint": "^3.11.1",
     "eslint-plugin-flowtype": "^2.29.1",
     "eslint-plugin-react": "^6.7.1",

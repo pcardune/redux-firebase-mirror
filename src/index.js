@@ -152,6 +152,15 @@ export function valuesAtPaths(state: State, paths: string[]) {
   });
 }
 
+/**
+ * Configure the redux-firebase-mirror module.
+ * @param config.getFirebaseState a function that returns the subtree of the
+ *        redux state where the reducer was applied.
+ * @param config.persistToLocalStorage whether or not to persist firebase
+ *        data to local storage
+ * @param config.storagePrefix an optional prefix for the keys used in local
+ *        storage
+ */
 export function configureModule(config: {
   getFirebaseState(state: any): Immutable.Map<string, *>,
   persistToLocalStorage?: ?boolean,
