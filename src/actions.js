@@ -9,7 +9,7 @@ import type {
 } from 'redux';
 import firebase from 'firebase';
 
-import type {JSONType} from './index';
+import type {JSONType} from './types';
 import {isSubscribedToValue} from './index';
 export type Action =
   | {type: 'FIREBASE/RECEIVE_SNAPSHOT', path: string, value: JSONType}

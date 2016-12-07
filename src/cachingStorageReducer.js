@@ -8,10 +8,10 @@ interface Storage {
   getItem(key: string): ?string;
 }
 
-export default (config: {storagePrefix?: ?string, storage?: ?Storage}) => combineReducers({
+export default (config: {storagePrefix?: ?string, cacheStorage?: ?Storage}) => combineReducers({
   mirror(state=Immutable.Map(), action) {
     const storagePrefix = config.storagePrefix || '';
-    const storage = config.storage || localStorage;
+    const storage = config.cacheStorage || localStorage;
     switch (action.type) {
       case 'FIREBASE/RECEIVE_SNAPSHOT':
         storage.setItem(

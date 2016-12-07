@@ -2,7 +2,9 @@
 import {combineReducers} from 'redux-immutable';
 import * as Immutable from 'immutable';
 
-export default () => combineReducers({
+import type {StorageAPI} from './types';
+
+export default <M, V>(storageAPI: StorageAPI<M, V>) => combineReducers({
   subscriptions(state=Immutable.Map(), action) {
     switch (action.type) {
       case 'FIREBASE/SUBSCRIBE_TO_VALUES':
@@ -18,13 +20,13 @@ export default () => combineReducers({
     }
   },
 
-  mirror(state=Immutable.Map(), action) {
+  mirror(state, action) {
+    if (state === undefined) {
+      state = storageAPI.getInitialMirror();
+    }
     switch (action.type) {
       case 'FIREBASE/RECEIVE_SNAPSHOT':
-        return state.setIn(
-          action.path.split('/'),
-          Immutable.fromJS(action.value)
-        );
+        return storageAPI.setValues(state, {[action.path]: action.value});
       default:
         return state;
     }

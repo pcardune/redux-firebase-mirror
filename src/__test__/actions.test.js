@@ -5,7 +5,7 @@ import firebase from 'firebase';
 import type {Store} from 'redux';
 import * as Immutable from 'immutable';
 
-import {configureReducer} from '../index';
+import reduxFirebaseMirror from '../index';
 
 import type {Action} from '../actions';
 import {
@@ -35,10 +35,13 @@ describe("The actions module", () => {
         return next(action);
       },
     ];
+
+    const {reducer} = reduxFirebaseMirror({
+      getFirebaseState: (state) => state,
+    });
+
     store = createStore(
-      configureReducer({
-        getFirebaseState: (state) => state,
-      }),
+      reducer,
       Immutable.Map(),
       applyMiddleware(...middlewares)
     );

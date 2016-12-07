@@ -62,18 +62,17 @@ store.dispatch(reduxFirebaseMirror.subscribeToValues([
 ### Looking up mirrored data
 
 Any firebase paths that are subscribed to will be mirrored directly in your
-redux store, so you can look them up with the `getFirebaseMirror()` function:
+redux store, so you can look them up with the `valueAtPath()` function:
 
-```
-const mirror = reduxFirebareMirror.getFirebaseMirror(store.getState());
-mirror.getIn(['first', 'path', 'to', 'mirror']);
+```jsx
+reduxFirebareMirror.valueAtPath(store.getState(), 'first/path/to/mirror');
 ```
 
 Note that rather than storing the plain json values returned from firebase,
 `redux-firebase-mirror` converts them
 to [immutable-js](https://facebook.github.io/immutable-js/) objects.
 
-### Usage with react
+## Usage with react
 
 `redux-firebase-mirror` provides a `subscribePaths` higher order component to
 make it simple to declaratively specify what paths a particular react component
