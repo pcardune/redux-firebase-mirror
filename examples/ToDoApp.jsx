@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {compose} from 'redux';
 import {connect} from 'react-redux';
-import {subscribePaths} from '../src/react';
+import {subscribePaths} from '../src/hoc';
 
 import {numToDos} from './redux';
 import ToDoList from './ToDoList';
