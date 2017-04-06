@@ -39,3 +39,5 @@ jspm_packages
 reports
 dist
 docs
+firebaseKeys.json
+build
