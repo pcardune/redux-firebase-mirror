@@ -1,5 +1,5 @@
-// flow-typed signature: ba132c96664f1a05288f3eb2272a3c35
-// flow-typed version: c4bbd91cfc/redux_v3.x.x/flow_>=v0.33.x
+// flow-typed signature: 7f1a115f75043c44385071ea3f33c586
+// flow-typed version: 358375125e/redux_v3.x.x/flow_>=v0.33.x
 
 declare module 'redux' {
 
@@ -10,22 +10,16 @@ declare module 'redux' {
 
   */
 
-  declare type ThunkAction<S, R> = (dispatch: Dispatch<S, any>, getState: () => S) => R;
-  declare type PromiseAction<M, R> = { type: string, meta: M, payload: Promise<R> };
-  declare type ThunkDispatch<S> = <R>(action: ThunkAction<S, R>) => R;
-  declare type PromiseDispatch = <M, R>(action: PromiseAction<M, R>) => Promise<R>;
-
-  declare type PlainDispatch<A: {type: $Subtype<string>}> = (action: A) => A;
-  declare type Dispatch<S, A> = PlainDispatch<A> & ThunkDispatch<S> & PromiseDispatch;
+  declare type Dispatch<A: { type: $Subtype<string> }> = (action: A) => A;
 
   declare type MiddlewareAPI<S, A> = {
-    dispatch: Dispatch<S, A>;
+    dispatch: Dispatch<A>;
     getState(): S;
   };
 
   declare type Store<S, A> = {
     // rewrite MiddlewareAPI members in order to get nicer error messages (intersections produce long messages)
-    dispatch: Dispatch<S, A>;
+    dispatch: Dispatch<A>;
     getState(): S;
     subscribe(listener: () => void): () => void;
     replaceReducer(nextReducer: Reducer<S, A>): void
@@ -33,9 +27,11 @@ declare module 'redux' {
 
   declare type Reducer<S, A> = (state: S, action: A) => S;
 
+  declare type CombinedReducer<S, A> = (state: $Shape<S> & {} | void, action: A) => S;
+
   declare type Middleware<S, A> =
     (api: MiddlewareAPI<S, A>) =>
-      (next: Dispatch<S, A>) => Dispatch<S, A>;
+      (next: Dispatch<A>) => Dispatch<A>;
 
   declare type StoreCreator<S, A> = {
     (reducer: Reducer<S, A>, enhancer?: StoreEnhancer<S, A>): Store<S, A>;
@@ -52,10 +48,10 @@ declare module 'redux' {
   declare type ActionCreator<A, B> = (...args: Array<B>) => A;
   declare type ActionCreators<K, A> = { [key: K]: ActionCreator<A, any> };
 
-  declare function bindActionCreators<A, C: ActionCreator<A, any>>(actionCreator: C, dispatch: Dispatch<S, A>): C;
-  declare function bindActionCreators<A, K, C: ActionCreators<K, A>>(actionCreators: C, dispatch: Dispatch<S, A>): C;
+  declare function bindActionCreators<A, C: ActionCreator<A, any>>(actionCreator: C, dispatch: Dispatch<A>): C;
+  declare function bindActionCreators<A, K, C: ActionCreators<K, A>>(actionCreators: C, dispatch: Dispatch<A>): C;
 
-  declare function combineReducers<O: Object, A>(reducers: O): Reducer<$ObjMap<O, <S>(r: Reducer<S, any>) => S>, A>;
+  declare function combineReducers<O: Object, A>(reducers: O): CombinedReducer<$ObjMap<O, <S>(r: Reducer<S, any>) => S>, A>;
 
   declare function compose<S, A>(...fns: Array<StoreEnhancer<S, A>>): Function;
 
