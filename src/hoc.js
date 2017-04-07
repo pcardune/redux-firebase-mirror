@@ -6,42 +6,54 @@ import {compose} from 'redux';
 
 import {subscribeToValues} from './actions';
 
-export function subscribePaths<RS, NP:Object, D, P:Object, S, C: React$Component<D, P, S>>(
+function ownProps(props) {
+  let {
+    __dispatch: ignoreDispatch, //eslint-disable-line
+    __state: ignoreState, //eslint-disable-line
+    ...rest
+  } = props;
+  return rest;
+}
+
+export function subscribePaths<RS, NP:Object, D, P:Object, S, C: React.Component<D, P, S>>(
   mapPropsToPaths: (state: RS, props: NP) => string[]
-): (c: Class<C>) => Class<React$Component<void, P & NP, void>> {
+) {
+  function getPaths(props) {
+    const paths = mapPropsToPaths(props.__state, ownProps(props));
+    if (!Array.isArray(paths)) {
+      throw new Error("The function given to subscribePaths() must return an array of strings");
+    }
+    return paths;
+  }
+
   return (ComponentToWrap: Class<C>) => {
     return connect(
-      (state: RS)=>({state}),
-      (dispatch: Dispatch<*, *>) => ({dispatch})
+      (__state: RS)=>({__state}),
+      (__dispatch: Dispatch<*, *>) => ({__dispatch})
     )(class WrapperComponent extends Component {
 
       props: NP & P & {
-        dispatch: Dispatch<*, *>,
-        state: RS,
+        __dispatch: Dispatch<*, *>,
+        __state: RS,
       };
 
       componentDidMount() {
-        this.props.dispatch(subscribeToValues(mapPropsToPaths(this.props.state, this.props)));
+        this.props.__dispatch(subscribeToValues(getPaths(this.props)));
       }
 
       componentDidUpdate() {
-        const paths = mapPropsToPaths(this.props.state, this.props);
+        const paths = getPaths(this.props);
         // TODO: make this work.
         // in theory we should have already subscribed to the values in the prev paths
         // but that doesn't seem to be happening for some reason I do not yet understand.
         // so to play it safe, ditch this micro-opitmization for now.
         // const prevPaths = new Set(mapPropsToPaths(this.props.state, prevProps));
         // const newPaths = paths.filter(path => !prevPaths.has(path));
-        this.props.dispatch(subscribeToValues(paths));
+        this.props.__dispatch(subscribeToValues(paths));
       }
 
       render() {
-        let {
-          dispatch: ignoreDispatch, //eslint-disable-line
-          state: ignoreState, //eslint-disable-line
-          ...rest
-        } = this.props;
-        return <ComponentToWrap {...rest} />;
+        return <ComponentToWrap {...ownProps(this.props)} />;
       }
     });
   };
@@ -73,7 +85,8 @@ export function subscribeProps(mapPropsToSubscriptionsMaybeFunc) {
             props[key] = subscriptionsMap[key].value(state, ownProps);
           }
           return props;
-        }
+        },
+        () => ({})
       ),
     )(ComponentToWrap);
   };

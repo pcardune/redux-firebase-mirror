@@ -31,7 +31,6 @@ describe("The actions module", () => {
       thunkMiddleware,
       () => next => (action: any) => {
         dispatchedActions.push(action);
-        // $FlowFixMe
         return next(action);
       },
     ];

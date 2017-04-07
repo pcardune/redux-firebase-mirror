@@ -3,25 +3,23 @@
  */
 
 //@flow
-import type {
-  Dispatch as ReduxDispatch,
-  ThunkAction as ReduxThunkAction,
-} from 'redux';
 import firebase from 'firebase';
 
 import type {JSONType} from './types';
 import {isSubscribedToValue} from './index';
-export type Action =
+export type FSA =
   | {type: 'FIREBASE/RECEIVE_SNAPSHOT', path: string, value: JSONType}
   | {type: 'FIREBASE/UNSUBSCRIBE_FROM_VALUES', paths: string[]}
   | {type: 'FIREBASE/SUBSCRIBE_TO_VALUES', paths: string[]};
+export type Action = FSA | <R>(d: Dispatch, getState: <S>() => S) => ?R;
 
-type Dispatch = ReduxDispatch<*, Action>;
-type ThunkAction<R> = ReduxThunkAction<*, R>;
+export const RECEIVE_SNAPSHOT = 'FIREBASE/RECEIVE_SNAPSHOT';
+export const UNSUBSCRIBE_FROM_VALUES = 'FIREBASE/UNSUBSCRIBE_FROM_VALUES';
+export const SUBSCRIBE_TO_VALUES = 'FIREBASE/SUBSCRIBE_TO_VALUES';
 
 function receiveSnapshot(snapshot) {
   return {
-    type: 'FIREBASE/RECEIVE_SNAPSHOT',
+    type: RECEIVE_SNAPSHOT,
     path: snapshot.ref.toString().split('/').slice(3).join('/'),
     value: snapshot.val(),
   };
@@ -31,13 +29,13 @@ function receiveSnapshot(snapshot) {
  * Subscribe to `'value'` changes for the specified list of paths in firebase.
  * @param paths the list of paths to subscribe to.
  */
-export function subscribeToValues<S>(paths: string[]): ThunkAction<void> {
+export function subscribeToValues<S>(paths: string[]) {
   return (dispatch: Dispatch, getState: () => S) => {
     paths = paths.filter(path => !isSubscribedToValue(getState(), path));
     if (paths.length == 0) {
       return;
     }
-    dispatch({type: 'FIREBASE/SUBSCRIBE_TO_VALUES', paths});
+    dispatch({type: SUBSCRIBE_TO_VALUES, paths});
     const dispatchSnapshot = snapshot => dispatch(receiveSnapshot(snapshot));
     paths.forEach(path => {
       firebase.database().ref(path).on('value', dispatchSnapshot);
@@ -50,20 +48,25 @@ export function subscribeToValues<S>(paths: string[]): ThunkAction<void> {
  * @param paths the list of paths to subscribe to.
  * @param callback function to call when all the data has been fetched.
  */
-export function fetchValues(paths: string[], callback: ?() => void): ThunkAction<void> {
+export function fetchValues(paths: string[], callback: ?() => void) {
   return (dispatch: Dispatch) => {
     let numLeft = paths.length;
-    const dispatchSnapshot = snapshot => {
-      dispatch(receiveSnapshot(snapshot));
-      numLeft--;
-      if (numLeft === 0) {
-        callback && callback();
-      }
-    };
-    paths.forEach(path => firebase.database().ref(path).once(
-      'value',
-      dispatchSnapshot,
-    ));
+    return new Promise((resolve, reject) => {
+
+      const dispatchSnapshot = snapshot => {
+        dispatch(receiveSnapshot(snapshot));
+        numLeft--;
+        if (numLeft === 0) {
+          callback && callback();
+          resolve();
+        }
+      };
+      paths.forEach(path => firebase.database().ref(path).once(
+        'value',
+        dispatchSnapshot,
+      ));
+
+    });
   };
 }
 
@@ -78,6 +81,6 @@ export function unsubscribeFromValues(paths: string[]) {
       return;
     }
     paths.forEach(path => firebase.database().ref(path).off('value'));
-    dispatch({type: 'FIREBASE/UNSUBSCRIBE_FROM_VALUES', paths});
+    dispatch({type: UNSUBSCRIBE_FROM_VALUES, paths});
   };
 }
