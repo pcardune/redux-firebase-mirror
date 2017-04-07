@@ -1,9 +1,7 @@
 import reduxFirebaseMirror from '../src/index';
 import Subscription from '../src/Subscription';
 
-export const firebaseMirror = reduxFirebaseMirror({
-  getFirebaseState: (state) => state.firebaseMirror,
-});
+export const firebaseMirror = reduxFirebaseMirror();
 
 export const toDoIds = new Subscription({
   paths: () => ['/todos'],

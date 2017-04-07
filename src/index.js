@@ -1,3 +1,8 @@
+/**
+ * The main module that you will need to import
+ * @module
+ * @name redux-firebase-mirror
+ */
 //@flow
 import * as Immutable from 'immutable';
 import {createSelector} from 'reselect';
@@ -8,13 +13,18 @@ export * from './actions';
 import immutableStorage from './immutableStorage';
 import type {StorageAPI} from './types';
 
+const DEFAULT_MOUNT_KEY = 'firebaseMirror';
+
 const CONFIG: {
-  localStoragePrefix: string,
   getFirebaseState: <S>(state: S) => Immutable.Map<string, *>,
 } = {
-  localStoragePrefix: '',
-  getFirebaseState() {
-    throw new Error("redux-firebase has not been configured");
+  getFirebaseState(state) {
+    if (!state[DEFAULT_MOUNT_KEY]) {
+      throw new Error(
+        `redux-firebase-mirror's reducer must be mounted with combineReducers() under the '${DEFAULT_MOUNT_KEY}' key`
+      );
+    }
+    return state[DEFAULT_MOUNT_KEY];
   }
 };
 
@@ -51,22 +61,46 @@ export const getFirebaseMirror = createSelector(
 );
 
 /**
- * Configure the redux-firebase-mirror module.
- * @param config configuration required to use `redux-firebase-mirror`
- * @param config.getFirebaseState a function that returns the subtree of the
- *        redux state where the reducer was applied.
- * @param config.persistToLocalStorage whether or not to persist firebase
- *        data to local storage
- * @param config.storagePrefix an optional prefix for the keys used in local
- *        storage
+ * @typedef {Object} ConfiguredModule
+ * @property {Selectors} selectors - selectors for querying the firebase mirror's state
+ * @property {Function} reducer - The reducer function to use with your own redux store
  */
-export default function configureReducer(config: {
+
+/**
+ * Configures the redux-firebase-mirror module.
+ * @name reduxFirebaseMirror
+ *
+ * @example
+ * const {reducer, selectors} = reduxFirebaseMirror({
+ *   getFirebaseState: (state) => state.mirror,
+ *   persistToLocalStorage: {
+ *     storagePrefix: 'firebase-cache',
+ *     storage: window.sessionStorage,
+ *   }
+ * });
+ *
+ * @param {Object} [config] - optional configuration with which to initialize `redux-firebase-mirror`
+ * @param {Function} [config.getFirebaseState] - a function that returns the subtree of the
+ *        redux state where the reducer was applied.
+ * @param {PersistanceConfig} [config.persistToLocalStorage] - whether or not to persist firebase
+ *        data to local storage
+ * @returns {ConfiguredModule} an object containing both the reducer and a set of selectors.
+ */
+export default function configureReducer(config: ?{
   getFirebaseState: (state: any) => Immutable.Map<string, *>,
-  persistToLocalStorage?: ?boolean,
-  storagePrefix?: ?string,
+  persistToLocalStorage?: ?{
+    storagePrefix?: ?string,
+    storage?: ?{
+      setItem(key: string, value: string): any;
+      getItem(key: string): ?string;
+    },
+  },
   storageAPI?: ?StorageAPI<*, *>
 }) {
-  CONFIG.getFirebaseState = config.getFirebaseState;
+  config = config || {};
+  if (config.getFirebaseState) {
+    CONFIG.getFirebaseState = config.getFirebaseState;
+  }
   let storageAPI: StorageAPI<*, *> = config.storageAPI || immutableStorage;
 
   const selectors = {
@@ -83,7 +117,7 @@ export default function configureReducer(config: {
   let reducer = getReducer(storageAPI);
   if (config.persistToLocalStorage) {
     reducer = compose(
-      cachingStorageReducer({storagePrefix: config.storagePrefix, storageAPI}),
+      cachingStorageReducer(config.persistToLocalStorage),
       reducer,
     );
   }

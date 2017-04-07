@@ -16,7 +16,7 @@ export default subscribeProps({
   render() {
     return (
       <label>
-        <input type="checkbox" checked={this.props.toDo.get('completed')} onChange={this.onChangeCompleted} />
+        <input type="checkbox" checked={!!this.props.toDo.get('completed')} onChange={this.onChangeCompleted} />
         {' '}
         {this.props.toDo.get('text')}
       </label>

@@ -10,11 +10,21 @@ interface Storage {
   getItem(key: string): ?string;
 }
 
-export default (config: ?{storagePrefix?: ?string, cacheStorage?: ?Storage}) => combineReducers({
+/**
+ * @typedef {Object} PersistanceConfig
+ * @type {object}
+ * @property {string} [storagePrefix] - prefix to use for keys when setting values in local
+ *           or session storage
+ * @property {(LocalStorage|SessionStorage)} [storage] - An object providing the same api as
+ *           localStorage or sessionStorage
+ */
+
+
+export default (config: ?{storagePrefix?: ?string, storage?: ?Storage}) => combineReducers({
   mirror(state=Immutable.Map(), action) {
     config = config || {};
     const storagePrefix = config.storagePrefix || '';
-    const storage = config.cacheStorage || localStorage;
+    const storage = config.storage || localStorage;
     switch (action.type) {
       case RECEIVE_SNAPSHOT:
         storage.setItem(

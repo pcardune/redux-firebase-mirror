@@ -1,5 +1,6 @@
 /**
  * @module redux action creators
+ * @name actions
  */
 
 //@flow
@@ -27,7 +28,7 @@ function receiveSnapshot(snapshot) {
 
 /**
  * Subscribe to `'value'` changes for the specified list of paths in firebase.
- * @param paths the list of paths to subscribe to.
+ * @param {string[]} paths - the list of paths to subscribe to.
  */
 export function subscribeToValues<S>(paths: string[]) {
   return (dispatch: Dispatch, getState: () => S) => {
@@ -45,13 +46,15 @@ export function subscribeToValues<S>(paths: string[]) {
 
 /**
  * Perform a one-time fetch from firebase of all the given paths.
- * @param paths the list of paths to subscribe to.
- * @param callback function to call when all the data has been fetched.
+ * @param {string[]} paths -  the list of paths to subscribe to.
+ * @param {callback} [callback] - function to call when all the data has been fetched.
+ * @callback callback
+ * @returns {Promise} - a Promise which resolves when the fetch is completed
  */
 export function fetchValues(paths: string[], callback: ?() => void) {
   return (dispatch: Dispatch) => {
     let numLeft = paths.length;
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
 
       const dispatchSnapshot = snapshot => {
         dispatch(receiveSnapshot(snapshot));
@@ -72,7 +75,9 @@ export function fetchValues(paths: string[], callback: ?() => void) {
 
 /**
  * Unsubscribe from `'value'` changes for the specified list of paths in firebase.
- * @param paths the list of paths to unsubscribe from.
+ *
+ * @param {string[]} paths -  the list of paths to unsubscribe from.
+ * @returns {void}
  */
 export function unsubscribeFromValues(paths: string[]) {
   return (dispatch: Dispatch, getState: () => *) => {
