@@ -1,3 +1,6 @@
+[![CircleCI](https://circleci.com/gh/pcardune/redux-firebase-mirror.svg?style=svg)](https://circleci.com/gh/pcardune/redux-firebase-mirror)
+[![codecov](https://codecov.io/gh/pcardune/redux-firebase-mirror/branch/master/graph/badge.svg)](https://codecov.io/gh/pcardune/redux-firebase-mirror)
+
 # redux-firebase-mirror
 A library to help you easily mirror firebase data inside a redux store, and use
 that data inside a react application
