@@ -18,8 +18,8 @@ describe('cachingStorageReducer', () => {
 
   describe("the reducer function", () => {
     it("will ignore action types it does not know about", () => {
-      let state = Immutable.Map();
-      expect(reducer(state, {type: 'UNKNOWN'})).toBe(state);
+      let state = Immutable.Map({mirror: {}});
+      expect(reducer(state, {type: 'UNKNOWN'}).equals(state)).toBe(true);
     });
     it("will populate local storage with received snapshot values", () => {
       reducer(undefined, {type: RECEIVE_SNAPSHOT, path: 'foo/bar', value: {id: 1, name: "paul"}});
