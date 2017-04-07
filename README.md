@@ -10,6 +10,11 @@ that data inside a react application
 1. [Installation](#installation)
 1. [Set Up](#set-up)
 1. [API](#api)
+   1. [Configuration](#configuration)
+   1. [Action Creators](#action-creators)
+   1. [Selectors](#selectors)
+   1. [Subscriptions](#subscriptions)
+   1. [React Higher-Order-Components](#react-higher-order-components)
 
 ## Installation
 
@@ -268,57 +273,62 @@ friendProfilePics.mapProps(({id}) => ({userId: id}));
 
 ### React Higher-Order-Components
 
+#### subscribePaths(mapPropsToPaths)
 
+Wraps a react component such that the given paths are subscribed to when the
+component is mounted.
 
-### Mirroring firebase
+Param | Type | Description
+------|------|------------
+`mapPropsToPaths` | `Function` | A function that maps the current redux state and the component's props to an array of paths.
 
-To start mirroring a part of your firebase database, just dispatch the
-`subscribeToValues()` action creator:
-
+Example:
 ```jsx
-store.dispatch(reduxFirebaseMirror.subscribeToValues([
-  'first/path/to/mirror',
-  'other/path/to/mirror',
-]));
-```
-
-### Looking up mirrored data
-
-Any firebase paths that are subscribed to will be mirrored directly in your
-redux store, so you can look them up with the `valueAtPath()` function:
-
-```jsx
-reduxFirebareMirror.valueAtPath(store.getState(), 'first/path/to/mirror');
-```
-
-Note that rather than storing the plain json values returned from firebase,
-`redux-firebase-mirror` converts them
-to [immutable-js](https://facebook.github.io/immutable-js/) objects.
-
-## Usage with react
-
-`redux-firebase-mirror` provides a `subscribePaths` higher order component to
-make it simple to declaratively specify what paths a particular react component
-needs data from in order to render. Used in conjunction with `react-redux`'s
-`connect()` function, it becomes pretty easy to inject firebase data into your
-react component:
-
-```jsx
-import React, {Component} from 'react';
-import {subscribePaths, getFirebaseMirror} from 'redux-firebase-mirror';
-
-@subscribePaths((state, props) => [`users/${props.userId}`])
-@connect(
-  (state, props) => ({
-    user: getFirebaseMirror(state).getIn(['users', props.userId]),
-  })
-)
-class UserProfile extends Component {
+const FundraisingMeter = compose(
+  subscribePaths(
+    (state, props) => ['/fundraising'],
+  ),
+  connect(
+    (state, props) => ({fund: getValueAtPath(state, '/fundraising')})
+  )
+)(class extends Component {
   render() {
-    if (!this.props.user) {
-      return <div>Loading...</div>;
+    if (!this.props.fund) {
+      return <span>Loading...</span>;
     }
-    return <div>This is {this.props.user.get('name')}'s profile</div>;
+    const remaining = this.props.fund.get("goal") - this.props.fund.get("current");
+    return (
+      <span>
+        We are ${remaining} dollars away from our goal!
+      </span>
+    );
+  }
+});
+```
+
+#### subscribeProps(mapPropsToSubscriptions)
+
+Similar to `subscribePaths`, but takes a mapping from props to a collection of subscription objects and populates the given components props with the values from the subscriptions.
+
+Param | Type | Description
+------|------|------------
+`mapPropsToSubscriptions` | `Function\|Object` | A function that maps the current redux state and the component's props to an array of paths. Alternatively, you can also just pass in an object if you don't care about the state or props.
+
+```jsx
+class ImageCollage extends Component {
+  static propTypes = {
+    imgUrls: PropTypes.arrayOf(PropTypes.string),
+  };
+  render() {
+    return (
+      <div>
+        {this.props.imgUrls.map(imgUrl => <img src={imgUrl} />)}
+      </div>
+    );
   }
 }
+
+const FriendCollageContainer = subscribeProps({
+  imgUrls: friendProfilePics,
+})(ImageCollage);
 ```
