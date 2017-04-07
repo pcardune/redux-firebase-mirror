@@ -1,6 +1,4 @@
-import reduxFirebaseMirror, {getKeysAtPath, getValueAtPath, Subscription} from 'redux-firebase-mirror';
-
-export const firebaseMirror = reduxFirebaseMirror();
+import {getKeysAtPath, getValueAtPath, Subscription} from 'redux-firebase-mirror';
 
 export const toDoIds = new Subscription({
   paths: () => ['/todos'],

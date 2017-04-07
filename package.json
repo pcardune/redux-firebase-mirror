@@ -11,6 +11,7 @@
   "license": "MIT",
   "scripts": {
     "test": "jest",
+    "lint": "eslint src/ examples/"
     "build": "babel -d dist src/",
     "docs": "documentation build -f html -o docs src/**/*.js"
   },

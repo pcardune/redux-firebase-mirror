@@ -15,7 +15,7 @@ jest.mock('firebase');
 
 describe("the hoc.js module", () => {
 
-  let api, store, dispatchedActions;
+  let store, dispatchedActions;
   beforeEach(() => {
     firebase.database.mockReturnValue({
       ref: jest.fn((path) => {

@@ -35,7 +35,7 @@ describe('Subscription', () => {
 
       paths.mockImplementation(() => ['first']);
 
-      const fetchAction = () => new Promise((resolve, reject) => {
+      const fetchAction = () => new Promise((resolve) => {
         paths.mockImplementation(() => ['first', 'second']);
         resolve();
       });
