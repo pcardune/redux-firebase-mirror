@@ -11,10 +11,17 @@
   "license": "MIT",
   "scripts": {
     "test": "jest",
-    "lint": "eslint src/ examples/"
-    "build": "babel -d dist src/",
+    "prepublish": "npm run build",
+    "lint": "eslint src/ examples/",
+    "build": "babel --ignore *.test.js -d dist src/",
     "docs": "documentation build -f html -o docs src/**/*.js"
   },
+  "files": [
+    "README.md",
+    "LICENSE",
+    "index.js",
+    "dist/*"
+  ],
   "jest": {
     "setupTestFrameworkScriptFile": "./setupJasmineEnv.js",
     "coverageDirectory": "./reports/coverage",
