@@ -3,7 +3,7 @@
 
 # redux-firebase-mirror
 A library to help you easily mirror firebase data inside a redux store, and use
-that data inside a react application
+that data inside a react application.
 
 ## Table of Contents
 
@@ -75,6 +75,8 @@ Param         | Type | Description
 
 returns: a redux reducer function
 
+----------------------
+
 ### Action Creators
 
 The following action creators can be used to control what parts of the firebase database are being mirrored.
@@ -140,6 +142,8 @@ store.dispatch(fetchValues([
 });
 ```
 
+----------------------
+
 ### Selectors
 
 The following selector functions can be used to query the mirror.
@@ -182,6 +186,8 @@ userIds.forEach(userId => {
   );
 });
 ```
+
+----------------------
 
 ### Subscriptions
 
@@ -270,6 +276,8 @@ Example:
 // let me pass in userId as id instead
 friendProfilePics.mapProps(({id}) => ({userId: id}));
 ```
+
+----------------------
 
 ### React Higher-Order-Components
 
