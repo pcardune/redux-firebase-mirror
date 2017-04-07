@@ -9,15 +9,23 @@ import {createSelector} from 'reselect';
 import {compose} from 'redux';
 import cachingStorageReducer from './cachingStorageReducer';
 import getReducer from './reducer';
-export * from './actions';
+import {
+  RECEIVE_SNAPSHOT,
+  UNSUBSCRIBE_FROM_VALUES,
+  SUBSCRIBE_TO_VALUES,
+  subscribeToValues,
+  fetchValues,
+  unsubscribeFromValues,
+} from './actions';
 import immutableStorage from './immutableStorage';
 import type {StorageAPI} from './types';
+import Subscription from './Subscription';
+import {subscribePaths, subscribeProps} from './hoc';
 
 const DEFAULT_MOUNT_KEY = 'firebaseMirror';
 
-const CONFIG: {
-  getFirebaseState: <S>(state: S) => Immutable.Map<string, *>,
-} = {
+const CONFIG = {
+  storageAPI: immutableStorage,
   getFirebaseState(state) {
     if (!state[DEFAULT_MOUNT_KEY]) {
       throw new Error(
@@ -86,7 +94,7 @@ export const getFirebaseMirror = createSelector(
  *        data to local storage
  * @returns {ConfiguredModule} an object containing both the reducer and a set of selectors.
  */
-export default function configureReducer(config: ?{
+function configureReducer(config: ?{
   getFirebaseState: (state: any) => Immutable.Map<string, *>,
   persistToLocalStorage?: ?{
     storagePrefix?: ?string,
@@ -101,25 +109,41 @@ export default function configureReducer(config: ?{
   if (config.getFirebaseState) {
     CONFIG.getFirebaseState = config.getFirebaseState;
   }
-  let storageAPI: StorageAPI<*, *> = config.storageAPI || immutableStorage;
+  if (config.storageAPI) {
+    CONFIG.storageAPI = config.storageAPI;
+  }
 
-  const selectors = {
-    getKeysAtPath(state: any, path: string) {
-      return storageAPI.getKeysAtPath(getFirebaseMirror(state), path);
-    },
-
-    getValueAtPath(state: any, path: string) {
-      return storageAPI.getValueAtPath(getFirebaseMirror(state), path);
-    },
-  };
-
-
-  let reducer = getReducer(storageAPI);
+  let reducer = getReducer(CONFIG.storageAPI);
   if (config.persistToLocalStorage) {
     reducer = compose(
       cachingStorageReducer(config.persistToLocalStorage),
       reducer,
     );
   }
-  return {reducer, selectors};
+  return reducer;
 }
+
+export default configureReducer;
+
+export function getKeysAtPath(state: any, path: string) {
+  return CONFIG.storageAPI.getKeysAtPath(getFirebaseMirror(state), path);
+}
+
+export function getValueAtPath(state: any, path: string) {
+  return CONFIG.storageAPI.getValueAtPath(getFirebaseMirror(state), path);
+}
+
+export {
+  // actions
+  RECEIVE_SNAPSHOT,
+  UNSUBSCRIBE_FROM_VALUES,
+  SUBSCRIBE_TO_VALUES,
+  subscribeToValues,
+  fetchValues,
+  unsubscribeFromValues,
+
+  // subscriptions
+  Subscription,
+  subscribeProps,
+  subscribePaths,
+};

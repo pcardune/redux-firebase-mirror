@@ -36,11 +36,10 @@ describe("the hoc.js module", () => {
       },
     ];
 
-    api = reduxFirebaseMirror({
-      getFirebaseState: state => state,
-    });
     store = createStore(
-      api.reducer,
+      reduxFirebaseMirror({
+        getFirebaseState: state => state,
+      }),
       Immutable.Map(),
       applyMiddleware(...middlewares)
     );

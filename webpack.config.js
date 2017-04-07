@@ -24,6 +24,9 @@ module.exports = {
   },
   resolve: {
     extensions: [".js", ".json", ".jsx"],
+    alias: {
+      "redux-firebase-mirror": path.resolve(__dirname, 'src', 'index'),
+    },
   },
   plugins: [
     new HtmlWebpackPlugin(),

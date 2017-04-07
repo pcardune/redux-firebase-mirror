@@ -1,11 +1,10 @@
 import React, {Component} from 'react';
 import {compose} from 'redux';
 import {connect} from 'react-redux';
-import {subscribePaths} from '../src/hoc';
+import {getKeysAtPath, subscribePaths} from 'redux-firebase-mirror';
 
 import AddToDoForm from './AddToDoForm';
 import ToDoListItem from './ToDoListItem';
-import {firebaseMirror} from './redux';
 
 export default compose(
   subscribePaths(
@@ -13,7 +12,7 @@ export default compose(
   ),
   connect(
     state => ({
-      todoIds: firebaseMirror.selectors.getKeysAtPath(state, '/todos')
+      todoIds: getKeysAtPath(state, '/todos')
     })
   ),
 )(class ToDoList extends Component {

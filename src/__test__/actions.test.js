@@ -35,7 +35,7 @@ describe("The actions module", () => {
       },
     ];
 
-    const {reducer} = reduxFirebaseMirror({
+    const reducer = reduxFirebaseMirror({
       getFirebaseState: (state) => state,
     });
 

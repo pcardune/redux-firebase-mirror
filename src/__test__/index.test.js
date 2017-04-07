@@ -2,7 +2,13 @@
 import thunkMiddleware from 'redux-thunk';
 import {createStore, applyMiddleware} from 'redux';
 import * as Immutable from 'immutable';
-import reduxFirebaseMirror, {subscribeToValues, unsubscribeFromValues, fetchValues} from '../index';
+import reduxFirebaseMirror, {
+  getKeysAtPath,
+  getValueAtPath,
+  subscribeToValues,
+  unsubscribeFromValues,
+  fetchValues
+} from '../index';
 import * as actions from '../actions';
 
 describe("The redux-firebase-mirror module", () => {
@@ -13,27 +19,21 @@ describe("The redux-firebase-mirror module", () => {
   });
 
   describe("the default exported function", () => {
-    let api, store;
+    let store;
     beforeEach(() => {
-      api = reduxFirebaseMirror({
-        getFirebaseState: state => state,
-      });
       store = createStore(
-        api.reducer,
+        reduxFirebaseMirror({
+          getFirebaseState: state => state,
+        }),
         Immutable.Map(),
         applyMiddleware(thunkMiddleware)
       );
     });
 
-    it("should return some selectors", () => {
-      expect(api.selectors.getKeysAtPath).toEqual(jasmine.any(Function));
-      expect(api.selectors.getValueAtPath).toEqual(jasmine.any(Function));
-    });
-
     describe("the getKeysAtPath selector", () => {
       it("should return an empty list for paths that have not been fetched yet", () => {
-        expect(api.selectors.getKeysAtPath(store.getState(), 'foo')).toEqual([]);
-        expect(api.selectors.getKeysAtPath(store.getState(), 'foo/bar/baz')).toEqual([]);
+        expect(getKeysAtPath(store.getState(), 'foo')).toEqual([]);
+        expect(getKeysAtPath(store.getState(), 'foo/bar/baz')).toEqual([]);
       });
 
       it("should return a list of keys for a path that has been fetched", () => {
@@ -42,16 +42,16 @@ describe("The redux-firebase-mirror module", () => {
           path: 'foo/bar/baz',
           value: 1,
         });
-        expect(api.selectors.getKeysAtPath(store.getState(), 'foo')).toEqual(['bar']);
-        expect(api.selectors.getKeysAtPath(store.getState(), 'foo/bar')).toEqual(['baz']);
-        expect(api.selectors.getKeysAtPath(store.getState(), 'foo/bar/baz')).toEqual([]);
+        expect(getKeysAtPath(store.getState(), 'foo')).toEqual(['bar']);
+        expect(getKeysAtPath(store.getState(), 'foo/bar')).toEqual(['baz']);
+        expect(getKeysAtPath(store.getState(), 'foo/bar/baz')).toEqual([]);
       });
     });
 
     describe("the getValueAtPath selector", () => {
       it("should return undefined for paths that have not been fetched yet", () => {
-        expect(api.selectors.getValueAtPath(store.getState(), 'foo')).toBeUndefined();
-        expect(api.selectors.getValueAtPath(store.getState(), 'foo/bar/baz')).toBeUndefined();
+        expect(getValueAtPath(store.getState(), 'foo')).toBeUndefined();
+        expect(getValueAtPath(store.getState(), 'foo/bar/baz')).toBeUndefined();
       });
       it("should return the value when it has been fetched", () => {
         store.dispatch({
@@ -59,13 +59,13 @@ describe("The redux-firebase-mirror module", () => {
           path: 'foo/bar/baz',
           value: 1,
         });
-        const foo = api.selectors.getValueAtPath(store.getState(), 'foo');
+        const foo = getValueAtPath(store.getState(), 'foo');
         if (foo instanceof Immutable.Map) {
           expect(foo.toJS()).toEqual({bar:{baz:1}});
         } else {
           throw new Error("expected to get a map");
         }
-        expect(api.selectors.getValueAtPath(store.getState(), 'foo/bar/baz')).toEqual(1);
+        expect(getValueAtPath(store.getState(), 'foo/bar/baz')).toEqual(1);
       });
     });
   });

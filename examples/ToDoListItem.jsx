@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import {compose} from 'redux';
 import {connect} from 'react-redux';
 import firebase from 'firebase';
-import {subscribeProps} from '../src/hoc';
+import {subscribeProps} from 'redux-firebase-mirror';
 
 import {toDoFromId} from './redux';
 

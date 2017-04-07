@@ -14,7 +14,7 @@ import ToDoApp from './ToDoApp';
 firebase.initializeApp(firebaseKeys);
 
 const store = createStore(
-  combineReducers({firebaseMirror: firebaseMirror.reducer}),
+  combineReducers({firebaseMirror}),
   applyMiddleware(thunkMiddleware, logger)
 );
 
