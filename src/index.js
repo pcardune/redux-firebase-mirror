@@ -6,7 +6,6 @@
 //@flow
 import * as Immutable from 'immutable';
 import {createSelector} from 'reselect';
-import {compose} from 'redux';
 import cachingStorageReducer from './cachingStorageReducer';
 import getReducer from './reducer';
 import {
@@ -24,7 +23,7 @@ import {subscribePaths, subscribeProps} from './hoc';
 
 const DEFAULT_MOUNT_KEY = 'firebaseMirror';
 
-const CONFIG = {
+const DEFAULT_CONFIG = {
   storageAPI: immutableStorage,
   getFirebaseState(state) {
     if (!state[DEFAULT_MOUNT_KEY]) {
@@ -35,6 +34,8 @@ const CONFIG = {
     return state[DEFAULT_MOUNT_KEY];
   },
 };
+
+const CONFIG = {...DEFAULT_CONFIG};
 
 // ---------------- selectors --------------
 function getFirebaseState(
@@ -109,20 +110,19 @@ export default function configureReducer(
     storageAPI?: ?StorageAPI<*, *>,
   },
 ) {
-  config = config || {};
-  if (config.getFirebaseState) {
-    CONFIG.getFirebaseState = config.getFirebaseState;
-  }
-  if (config.storageAPI) {
-    CONFIG.storageAPI = config.storageAPI;
-  }
+  config = {...DEFAULT_CONFIG, ...config};
+  CONFIG.getFirebaseState = config.getFirebaseState;
+  CONFIG.storageAPI = config.storageAPI;
 
-  let reducer = getReducer(CONFIG.storageAPI);
+  let reducer;
+  const stateReducer = getReducer(CONFIG.storageAPI);
   if (config.persistToLocalStorage) {
-    reducer = compose(
-      cachingStorageReducer(config.persistToLocalStorage),
-      reducer,
-    );
+    const cachingReducer = cachingStorageReducer(config.persistToLocalStorage);
+    reducer = (state, action) => {
+      cachingReducer(stateReducer(state, action), action);
+    };
+  } else {
+    reducer = stateReducer;
   }
   return reducer;
 }
