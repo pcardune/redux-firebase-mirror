@@ -29,22 +29,24 @@ const CONFIG = {
   getFirebaseState(state) {
     if (!state[DEFAULT_MOUNT_KEY]) {
       throw new Error(
-        `redux-firebase-mirror's reducer must be mounted with combineReducers() under the '${DEFAULT_MOUNT_KEY}' key`
+        `redux-firebase-mirror's reducer must be mounted with combineReducers() under the '${DEFAULT_MOUNT_KEY}' key`,
       );
     }
     return state[DEFAULT_MOUNT_KEY];
-  }
+  },
 };
 
 // ---------------- selectors --------------
-function getFirebaseState(state: *): Immutable.Map<string, Immutable.Map<string, mixed>> {
+function getFirebaseState(
+  state: *,
+): Immutable.Map<string, Immutable.Map<string, mixed>> {
   const firebaseState = CONFIG.getFirebaseState(state);
   return firebaseState;
 }
 
 const getFirebaseSubscriptions = createSelector(
   getFirebaseState,
-  firebaseState => firebaseState.get('subscriptions')
+  firebaseState => firebaseState.get('subscriptions'),
 );
 
 export function isSubscribedToValue(state: any, path: string): boolean {
@@ -65,7 +67,7 @@ export function isSubscribedToValue(state: any, path: string): boolean {
 
 export const getFirebaseMirror = createSelector(
   getFirebaseState,
-  firebaseState => firebaseState.get('mirror')
+  firebaseState => firebaseState.get('mirror'),
 );
 
 /**
@@ -94,17 +96,19 @@ export const getFirebaseMirror = createSelector(
  *        data to local storage
  * @returns {ConfiguredModule} an object containing both the reducer and a set of selectors.
  */
-function configureReducer(config: ?{
-  getFirebaseState: (state: any) => Immutable.Map<string, *>,
-  persistToLocalStorage?: ?{
-    storagePrefix?: ?string,
-    storage?: ?{
-      setItem(key: string, value: string): any;
-      getItem(key: string): ?string;
+export default function configureReducer(
+  config: ?{
+    getFirebaseState: (state: any) => Immutable.Map<string, *>,
+    persistToLocalStorage?: ?{
+      storagePrefix?: ?string,
+      storage?: ?{
+        setItem(key: string, value: string): any,
+        getItem(key: string): ?string,
+      },
     },
+    storageAPI?: ?StorageAPI<*, *>,
   },
-  storageAPI?: ?StorageAPI<*, *>
-}) {
+) {
   config = config || {};
   if (config.getFirebaseState) {
     CONFIG.getFirebaseState = config.getFirebaseState;
@@ -123,18 +127,16 @@ function configureReducer(config: ?{
   return reducer;
 }
 
-export default configureReducer;
-
 export function getKeysAtPath(state: any, path: string) {
   if (!path) {
-    throw new Error("You must specify a path from which to get keys");
+    throw new Error('You must specify a path from which to get keys');
   }
   return CONFIG.storageAPI.getKeysAtPath(getFirebaseMirror(state), path);
 }
 
 export function getValueAtPath(state: any, path: string) {
   if (!path) {
-    throw new Error("You must specify a path from which to get a value");
+    throw new Error('You must specify a path from which to get a value');
   }
   return CONFIG.storageAPI.getValueAtPath(getFirebaseMirror(state), path);
 }
@@ -147,7 +149,6 @@ export {
   subscribeToValues,
   fetchValues,
   unsubscribeFromValues,
-
   // subscriptions
   Subscription,
   subscribeProps,
