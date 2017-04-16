@@ -42,7 +42,7 @@ under the `firebaseMirror` key. Here is an example of what this might look like:
 
 ```jsx
 import reduxFirebaseMirror from 'redux-firebase-mirror';
-import {combineReducers, createStore} from 'redux';
+import {combineReducers, createStore, applyMiddleware} from 'redux';
 import thunkMiddleware from 'redux-thunk';
 
 const firebaseMirror = reduxFirebaseMirror();
@@ -121,7 +121,7 @@ store.dispatch(unsubscribeFromValues([
 
 #### fetchValues(paths, callback)
 
-Mirrors the values at the specified paths in the firebase database into your redux store _once_. The mirrored data will not continue to sync with firebase. 
+Mirrors the values at the specified paths in the firebase database into your redux store _once_. The mirrored data will not continue to sync with firebase.
 
 Param | Type | Description
 ------|------|------------

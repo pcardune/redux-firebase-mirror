@@ -13,7 +13,7 @@
     "test": "jest",
     "prepublish": "npm run build",
     "lint": "eslint src/ examples/",
-    "build": "babel --ignore *.test.js -d dist src/",
+    "build": "babel --ignore '*.test.js' -d dist src/",
     "docs": "documentation build -f html -o docs src/**/*.js"
   },
   "files": [

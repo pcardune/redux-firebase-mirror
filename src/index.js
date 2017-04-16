@@ -126,10 +126,16 @@ function configureReducer(config: ?{
 export default configureReducer;
 
 export function getKeysAtPath(state: any, path: string) {
+  if (!path) {
+    throw new Error("You must specify a path from which to get keys");
+  }
   return CONFIG.storageAPI.getKeysAtPath(getFirebaseMirror(state), path);
 }
 
 export function getValueAtPath(state: any, path: string) {
+  if (!path) {
+    throw new Error("You must specify a path from which to get a value");
+  }
   return CONFIG.storageAPI.getValueAtPath(getFirebaseMirror(state), path);
 }
 
