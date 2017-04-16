@@ -1,6 +1,6 @@
 {
   "name": "redux-firebase-mirror",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A library to help you easily mirror firebase data inside a redux store.",
   "main": "index.js",
   "repository": {
