@@ -1,7 +1,8 @@
 //@flow
 import thunkMiddleware from 'redux-thunk';
-import {createStore, applyMiddleware} from 'redux';
+import {createStore, applyMiddleware, combineReducers} from 'redux';
 import * as Immutable from 'immutable';
+import firebase from 'firebase';
 import reduxFirebaseMirror, {
   getKeysAtPath,
   getValueAtPath,
@@ -11,11 +12,12 @@ import reduxFirebaseMirror, {
   getFirebaseMirror,
 } from '../index';
 import * as actions from '../actions';
-import cachingStorageReducer from '../cachingStorageReducer';
+
+jest.mock('firebase');
 
 describe('The redux-firebase-mirror module', () => {
   it('should export all the functions from the actions module', () => {
-    expect(subscribeToValues).toBe(actions.subscribeToValues);
+    expect(subscribeToValues).toEqual(jasmine.any(Function));
     expect(unsubscribeFromValues).toBe(actions.unsubscribeFromValues);
     expect(fetchValues).toBe(actions.fetchValues);
   });
@@ -113,6 +115,82 @@ describe('The redux-firebase-mirror module', () => {
           value: 1,
         });
         expect(storage.setItem).toHaveBeenCalledWith('foo/bar/baz', '1');
+        expect(store.getState().toJS()).toEqual({
+          mirror: {foo: {bar: {baz: 1}}},
+          subscriptions: {},
+        });
+      });
+    });
+  });
+
+  describe('the subscribeToValues function', () => {
+    let store, dispatchedActions, refs;
+    beforeEach(() => {
+      refs = {};
+      firebase.database.mockReturnValue({
+        ref: jest.fn(path => {
+          refs[path] = {
+            on: jest.fn(),
+            off: jest.fn(),
+            once: jest.fn(),
+            path,
+          };
+          return refs[path];
+        }),
+      });
+    });
+    describe('when persistToLocalStorage is off (by default)', () => {
+      beforeEach(() => {
+        dispatchedActions = [];
+        store = createStore(
+          combineReducers({firebaseMirror: reduxFirebaseMirror()}),
+          applyMiddleware(thunkMiddleware, () =>
+            next =>
+              (action: any) => {
+                dispatchedActions.push(action);
+                return next(action);
+              }),
+        );
+      });
+      it('will just call actions.subscribeToValues', () => {
+        store.dispatch(subscribeToValues(['/foo']));
+        expect(dispatchedActions).toEqual([
+          {paths: ['/foo'], type: 'FIREBASE/SUBSCRIBE_TO_VALUES'},
+        ]);
+      });
+    });
+    describe('when persistToLocalStorage is enabled', () => {
+      beforeEach(() => {
+        dispatchedActions = [];
+        store = createStore(
+          combineReducers({
+            firebaseMirror: reduxFirebaseMirror({
+              persistToLocalStorage: {
+                storage: {
+                  getItem: path => JSON.stringify('value of ' + path),
+                },
+              },
+            }),
+          }),
+          applyMiddleware(thunkMiddleware, () =>
+            next =>
+              (action: any) => {
+                dispatchedActions.push(action);
+                return next(action);
+              }),
+        );
+      });
+      it('will also call actions.loadValuesFromCache', () => {
+        store.dispatch(subscribeToValues(['/foo']));
+        expect(dispatchedActions).toEqual([
+          {
+            fromCache: true,
+            path: '/foo',
+            type: 'FIREBASE/RECEIVE_SNAPSHOT',
+            value: 'value of foo',
+          },
+          {paths: ['/foo'], type: 'FIREBASE/SUBSCRIBE_TO_VALUES'},
+        ]);
       });
     });
   });

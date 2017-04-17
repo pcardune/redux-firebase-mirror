@@ -8,34 +8,11 @@ import * as Immutable from 'immutable';
 import {createSelector} from 'reselect';
 import cachingStorageReducer from './cachingStorageReducer';
 import getReducer from './reducer';
-import {
-  RECEIVE_SNAPSHOT,
-  UNSUBSCRIBE_FROM_VALUES,
-  SUBSCRIBE_TO_VALUES,
-  subscribeToValues,
-  fetchValues,
-  unsubscribeFromValues,
-} from './actions';
-import immutableStorage from './immutableStorage';
+import * as actions from './actions';
 import type {StorageAPI} from './types';
 import Subscription from './Subscription';
 import {subscribePaths, subscribeProps} from './hoc';
-
-const DEFAULT_MOUNT_KEY = 'firebaseMirror';
-
-const DEFAULT_CONFIG = {
-  storageAPI: immutableStorage,
-  getFirebaseState(state) {
-    if (!state[DEFAULT_MOUNT_KEY]) {
-      throw new Error(
-        `redux-firebase-mirror's reducer must be mounted with combineReducers() under the '${DEFAULT_MOUNT_KEY}' key`,
-      );
-    }
-    return state[DEFAULT_MOUNT_KEY];
-  },
-};
-
-const CONFIG = {...DEFAULT_CONFIG};
+import {DEFAULT_CONFIG, CONFIG} from './config';
 
 // ---------------- selectors --------------
 function getFirebaseState(
@@ -113,14 +90,14 @@ export default function configureReducer(
   config = {...DEFAULT_CONFIG, ...config};
   CONFIG.getFirebaseState = config.getFirebaseState;
   CONFIG.storageAPI = config.storageAPI;
+  CONFIG.persistToLocalStorage = config.persistToLocalStorage;
 
   let reducer;
   const stateReducer = getReducer(CONFIG.storageAPI);
   if (config.persistToLocalStorage) {
     const cachingReducer = cachingStorageReducer(config.persistToLocalStorage);
-    reducer = (state, action) => {
+    reducer = (state, action) =>
       cachingReducer(stateReducer(state, action), action);
-    };
   } else {
     reducer = stateReducer;
   }
@@ -141,14 +118,15 @@ export function getValueAtPath(state: any, path: string) {
   return CONFIG.storageAPI.getValueAtPath(getFirebaseMirror(state), path);
 }
 
+export const RECEIVE_SNAPSHOT = actions.RECEIVE_SNAPSHOT;
+export const UNSUBSCRIBE_FROM_VALUES = actions.UNSUBSCRIBE_FROM_VALUES;
+export const SUBSCRIBE_TO_VALUES = actions.SUBSCRIBE_TO_VALUES;
+
+export const subscribeToValues = actions.subscribeToValues;
+export const fetchValues = actions.fetchValues;
+export const unsubscribeFromValues = actions.unsubscribeFromValues;
+
 export {
-  // actions
-  RECEIVE_SNAPSHOT,
-  UNSUBSCRIBE_FROM_VALUES,
-  SUBSCRIBE_TO_VALUES,
-  subscribeToValues,
-  fetchValues,
-  unsubscribeFromValues,
   // subscriptions
   Subscription,
   subscribeProps,

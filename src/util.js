@@ -1,4 +1,4 @@
-export function splitPath(path) {
+export function normalizePath(path) {
   if (path[0] === '/') {
     // remove leading slash
     path = path.slice(1);
@@ -8,6 +8,9 @@ export function splitPath(path) {
     // remove trailing slash
     path = path.slice(0, path.length - 1);
   }
+  return path;
+}
 
-  return path.split('/');
+export function splitPath(path) {
+  return normalizePath(path).split('/');
 }

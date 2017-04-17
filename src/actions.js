@@ -2,17 +2,20 @@
  * @module redux action creators
  * @name actions
  */
+/* eslint-env browser */
 
 //@flow
 import firebase from 'firebase';
 
 import type {JSONType} from './types';
 import {isSubscribedToValue} from './index';
+import {CONFIG} from './config';
+import {normalizePath} from './util';
 export type FSA =
   | {type: 'FIREBASE/RECEIVE_SNAPSHOT', path: string, value: JSONType}
   | {type: 'FIREBASE/UNSUBSCRIBE_FROM_VALUES', paths: string[]}
   | {type: 'FIREBASE/SUBSCRIBE_TO_VALUES', paths: string[]};
-export type Action = FSA | <R>(d: Dispatch, getState: <S>() => S) => ?R;
+export type Action = FSA | (<R>(d: Dispatch, getState: <S>() => S) => ?R);
 
 export const RECEIVE_SNAPSHOT = 'FIREBASE/RECEIVE_SNAPSHOT';
 export const UNSUBSCRIBE_FROM_VALUES = 'FIREBASE/UNSUBSCRIBE_FROM_VALUES';
@@ -36,11 +39,56 @@ export function subscribeToValues<S>(paths: string[]) {
     if (paths.length == 0) {
       return;
     }
+    if (CONFIG.persistToLocalStorage) {
+      dispatch(loadValuesFromCache(paths, CONFIG.persistToLocalStorage));
+    }
     dispatch({type: SUBSCRIBE_TO_VALUES, paths});
     const dispatchSnapshot = snapshot => dispatch(receiveSnapshot(snapshot));
     paths.forEach(path => {
       firebase.database().ref(path).on('value', dispatchSnapshot);
     });
+  };
+}
+
+/**
+ * Load values from cache, possibly asynchronously.
+ * @param {string[]} paths - the list of paths to load from cache
+ * @param {PersistanceConfig} [config] - configuration for the cache
+ */
+export function loadValuesFromCache(paths: string[], config) {
+  return dispatch => {
+    if (config) {
+      const storagePrefix = config.storagePrefix || '';
+      const storage = config.storage || localStorage;
+      return paths.map(path => {
+        let valueOrPromise = storage.getItem(
+          storagePrefix + normalizePath(path),
+        );
+        const receiveFromCache = cached => {
+          if (!cached) {
+            return;
+          }
+          try {
+            cached = JSON.parse(cached);
+          } catch (e) {
+            // failed to parse json, just skip this.
+            return;
+          }
+          dispatch({
+            type: RECEIVE_SNAPSHOT,
+            path: path,
+            value: cached,
+            fromCache: true,
+          });
+          return cached;
+        };
+        if (valueOrPromise instanceof Promise) {
+          return valueOrPromise.then(receiveFromCache);
+        } else {
+          return receiveFromCache(valueOrPromise);
+        }
+      });
+    }
   };
 }
 
@@ -54,8 +102,7 @@ export function subscribeToValues<S>(paths: string[]) {
 export function fetchValues(paths: string[], callback: ?() => void) {
   return (dispatch: Dispatch) => {
     let numLeft = paths.length;
-    return new Promise((resolve) => {
-
+    return new Promise(resolve => {
       const dispatchSnapshot = snapshot => {
         dispatch(receiveSnapshot(snapshot));
         numLeft--;
@@ -64,11 +111,8 @@ export function fetchValues(paths: string[], callback: ?() => void) {
           resolve();
         }
       };
-      paths.forEach(path => firebase.database().ref(path).once(
-        'value',
-        dispatchSnapshot,
-      ));
-
+      paths.forEach(path =>
+        firebase.database().ref(path).once('value', dispatchSnapshot));
     });
   };
 }
