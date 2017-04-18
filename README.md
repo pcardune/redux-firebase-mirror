@@ -19,7 +19,7 @@ that data inside a react application.
 ## Installation
 
 ```
-npm install redux-firebase-mirror redux redux-thunk
+npm install redux-firebase-mirror redux redux-thunk firebase
 ```
 
 ### Peer Dependencies
@@ -27,6 +27,8 @@ npm install redux-firebase-mirror redux redux-thunk
 `redux-firebase-mirror` has the following peer and optional dependencies:
 * `redux` - this should be obvious. This library is designed to work with redux
   so you need to have it installed for this to be of any use.
+* `firebase` - Another obvious peer dependency. This library talks directly to
+  firebase to fetch data.
 * `redux-thunk` - You must set up your redux store with
   the [redux-thunk middleware](https://www.npmjs.com/package/redux-thunk) which
   this library uses to execute asynchronous redux actions.
