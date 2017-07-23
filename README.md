@@ -1,5 +1,8 @@
 [![CircleCI](https://circleci.com/gh/pcardune/redux-firebase-mirror.svg?style=svg)](https://circleci.com/gh/pcardune/redux-firebase-mirror)
 [![codecov](https://codecov.io/gh/pcardune/redux-firebase-mirror/branch/master/graph/badge.svg)](https://codecov.io/gh/pcardune/redux-firebase-mirror)
+[![npm](https://img.shields.io/npm/v/redux-firebase-mirror.svg)](https://www.npmjs.com/package/redux-firebase-mirror)
+[![npm](https://img.shields.io/npm/l/redux-firebase-mirror.svg)]()
+[![styled with prettier](https://img.shields.io/badge/styled_with-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
 
 # redux-firebase-mirror
 A library to help you easily mirror firebase data inside a redux store, and use
