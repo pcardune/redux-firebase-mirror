@@ -67,7 +67,6 @@
     "webpack-dev-server": "^2.4.2"
   },
   "dependencies": {
-    "firebase": "^3.6.2",
     "immutable": "^3.8.1",
     "redux-immutable": "^4.0.0",
     "reselect": "^3.0.0"
