@@ -5,9 +5,9 @@ import * as Immutable from 'immutable';
 import type {StorageAPI} from './types';
 import {
   RECEIVE_SNAPSHOT,
-  SUBSCRIBE_TO_VALUES,
   UNSUBSCRIBE_FROM_VALUES,
-} from './actions';
+  SUBSCRIBE_TO_VALUES,
+} from './constants';
 
 export default <M, V>(storageAPI: StorageAPI<M, V>) =>
   combineReducers({
@@ -32,7 +32,9 @@ export default <M, V>(storageAPI: StorageAPI<M, V>) =>
       }
       switch (action.type) {
         case RECEIVE_SNAPSHOT:
-          return storageAPI.setValues(state, {[action.path]: action.value});
+          return storageAPI.setValues(state, {
+            [action.path]: action.value,
+          });
         default:
           return state;
       }

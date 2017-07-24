@@ -19,7 +19,9 @@ jest.mock('firebase');
 
 function mockSnapshot(path, value) {
   return {
-    ref: 'ws://firebase-database/' + path.split('/').filter(s => s).join('/'),
+    ref:
+      'ws://firebase-database/' +
+      encodeURIComponent(path.split('/').filter(s => s).join('/')),
     val: () => value,
   };
 }
@@ -57,6 +59,14 @@ describe('The actions module', () => {
             on: jest.fn(),
             off: jest.fn(),
             once: jest.fn(),
+            orderByChild: jest.fn().mockReturnThis(),
+            orderByKey: jest.fn().mockReturnThis(),
+            orderByValue: jest.fn().mockReturnThis(),
+            endAt: jest.fn().mockReturnThis(),
+            startAt: jest.fn().mockReturnThis(),
+            limitToFirst: jest.fn().mockReturnThis(),
+            limitToLast: jest.fn().mockReturnThis(),
+            equalTo: jest.fn().mockReturnThis(),
             path,
           };
           return refs[path];
@@ -173,13 +183,24 @@ describe('The actions module', () => {
     describe('The subscribeToValues() action creator', () => {
       describe('when dispatched with a list of paths', () => {
         beforeEach(() => {
-          store.dispatch(subscribeToValues(['/foo', '/bar']));
+          store.dispatch(
+            subscribeToValues([
+              '/foo',
+              '/bar',
+              {
+                path: '/baz',
+                filter: {limitToLast: 1, startAt: 10},
+                orderBy: 'key',
+              },
+            ])
+          );
         });
 
         it('will subscribe to the firebase ref at the given paths', () => {
-          expect(Object.keys(refs).length).toBe(2);
+          expect(Object.keys(refs).length).toBe(3);
           expect(firebase.database().ref).toHaveBeenCalledWith('/foo');
           expect(firebase.database().ref).toHaveBeenCalledWith('/bar');
+          expect(firebase.database().ref).toHaveBeenCalledWith('/baz');
           expect(refs['/foo'].on).toHaveBeenCalledWith(
             'value',
             jasmine.any(Function)
@@ -190,11 +211,17 @@ describe('The actions module', () => {
           );
         });
 
+        it('will apply the appropriate filters specified in a path config object', () => {
+          expect(refs['/baz'].limitToLast).toHaveBeenCalledWith(1);
+          expect(refs['/baz'].startAt).toHaveBeenCalledWith(10);
+          expect(refs['/baz'].orderByKey).toHaveBeenCalled();
+        });
+
         it('will dispatch some redux actions', () => {
           expect(dispatchedActions).toEqual([
             {
               type: 'FIREBASE/SUBSCRIBE_TO_VALUES',
-              paths: ['/foo', '/bar'],
+              paths: ['/foo', '/bar', '/baz'],
             },
           ]);
         });
@@ -205,7 +232,7 @@ describe('The actions module', () => {
           });
 
           it('will only subscribe to firebase refs that have not already been subscribed to', () => {
-            expect(Object.keys(refs).length).toBe(3);
+            expect(Object.keys(refs).length).toBe(4);
             expect(firebase.database().ref).toHaveBeenCalledWith('/zap');
             expect(refs['/foo'].on).toHaveBeenCalledTimes(1);
             expect(refs['/bar'].on).toHaveBeenCalledTimes(1);
@@ -236,14 +263,16 @@ describe('The actions module', () => {
 
         describe('when the firebase value event is triggered', () => {
           beforeEach(() => {
-            refs['/foo'].on.mock.calls[0][1](mockSnapshot('/foo', 'foo-value'));
+            refs['/foo'].on.mock.calls[0][1](
+              mockSnapshot('/foo&bar', 'foo-value')
+            );
           });
 
           it('will dispatch a FIREBASE/RECEIVE_SNAPSHOT event', () => {
             expect(dispatchedActions.length).toBe(2);
             expect(dispatchedActions[1]).toEqual({
               type: 'FIREBASE/RECEIVE_SNAPSHOT',
-              path: 'foo',
+              path: 'foo&bar',
               value: 'foo-value',
             });
           });

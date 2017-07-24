@@ -8,7 +8,7 @@ import {Provider} from 'react-redux';
 import * as Immutable from 'immutable';
 import reduxFirebaseMirror from '../index';
 import {subscribePaths, subscribeProps} from '../hoc';
-import {SUBSCRIBE_TO_VALUES} from '../actions';
+import {SUBSCRIBE_TO_VALUES} from '../constants';
 import Subscription from '../Subscription';
 
 jest.mock('firebase');

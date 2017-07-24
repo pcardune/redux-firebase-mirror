@@ -2,7 +2,7 @@
 //@flow
 import {combineReducers} from 'redux-immutable';
 import * as Immutable from 'immutable';
-import {RECEIVE_SNAPSHOT} from './actions';
+import {RECEIVE_SNAPSHOT} from './constants';
 import {normalizePath} from './util';
 
 interface Storage {

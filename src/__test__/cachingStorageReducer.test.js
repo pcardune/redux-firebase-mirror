@@ -1,6 +1,6 @@
 import cachingStorageReducer from '../cachingStorageReducer';
 import * as Immutable from 'immutable';
-import {RECEIVE_SNAPSHOT, SUBSCRIBE_TO_VALUES} from '../actions';
+import {RECEIVE_SNAPSHOT, SUBSCRIBE_TO_VALUES} from '../constants';
 
 describe('cachingStorageReducer', () => {
   let reducer, state;
