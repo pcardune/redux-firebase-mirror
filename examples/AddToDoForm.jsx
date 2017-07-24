@@ -6,7 +6,7 @@ export default class AddToDoForm extends Component {
     text: '',
   };
 
-  onChangeText = (e) => {
+  onChangeText = e => {
     this.setState({text: e.target.value});
   };
 
@@ -19,7 +19,11 @@ export default class AddToDoForm extends Component {
   render() {
     return (
       <div>
-        <input type="text" value={this.state.text} onChange={this.onChangeText} />
+        <input
+          type="text"
+          value={this.state.text}
+          onChange={this.onChangeText}
+        />
         <button onClick={this.onClickAdd}>Add</button>
       </div>
     );

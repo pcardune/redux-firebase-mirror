@@ -16,7 +16,7 @@ import {DEFAULT_CONFIG, CONFIG} from './config';
 
 // ---------------- selectors --------------
 function getFirebaseState(
-  state: *,
+  state: *
 ): Immutable.Map<string, Immutable.Map<string, mixed>> {
   const firebaseState = CONFIG.getFirebaseState(state);
   return firebaseState;
@@ -24,7 +24,7 @@ function getFirebaseState(
 
 const getFirebaseSubscriptions = createSelector(
   getFirebaseState,
-  firebaseState => firebaseState.get('subscriptions'),
+  firebaseState => firebaseState.get('subscriptions')
 );
 
 export function isSubscribedToValue(state: any, path: string): boolean {
@@ -45,7 +45,7 @@ export function isSubscribedToValue(state: any, path: string): boolean {
 
 export const getFirebaseMirror = createSelector(
   getFirebaseState,
-  firebaseState => firebaseState.get('mirror'),
+  firebaseState => firebaseState.get('mirror')
 );
 
 /**
@@ -85,7 +85,7 @@ export default function configureReducer(
       },
     },
     storageAPI?: ?StorageAPI<*, *>,
-  },
+  }
 ) {
   config = {...DEFAULT_CONFIG, ...config};
   CONFIG.getFirebaseState = config.getFirebaseState;

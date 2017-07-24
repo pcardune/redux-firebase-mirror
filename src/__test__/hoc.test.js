@@ -13,12 +13,11 @@ import Subscription from '../Subscription';
 
 jest.mock('firebase');
 
-describe("the hoc.js module", () => {
-
+describe('the hoc.js module', () => {
   let store, dispatchedActions;
   beforeEach(() => {
     firebase.database.mockReturnValue({
-      ref: jest.fn((path) => {
+      ref: jest.fn(path => {
         return {
           on: jest.fn(),
           off: jest.fn(),
@@ -46,47 +45,53 @@ describe("the hoc.js module", () => {
   });
 
   class Something extends Component {
-    render() { return null; }
+    render() {
+      return null;
+    }
   }
 
   function render(component) {
     return mount(
-      <Provider store={store}>{component}</Provider>
+      <Provider store={store}>
+        {component}
+      </Provider>
     ).find(Something);
   }
 
-  describe("The subscribePaths higher-order-component", () => {
+  describe('The subscribePaths higher-order-component', () => {
     let mapStateToPaths, SmartComponent;
     beforeEach(() => {
       mapStateToPaths = jest.fn().mockReturnValue([]);
       SmartComponent = subscribePaths(mapStateToPaths)(Something);
     });
 
-    it("dispatches a SUBSCRIBE_TO_VALUES action when the component mounts", () => {
+    it('dispatches a SUBSCRIBE_TO_VALUES action when the component mounts', () => {
       mapStateToPaths.mockReturnValue(['/foo', '/bar']);
       expect(dispatchedActions).toEqual([]);
       render(<SmartComponent />);
-      expect(dispatchedActions).toEqual([{
-        type: SUBSCRIBE_TO_VALUES,
-        paths: ['/foo', '/bar'],
-      }]);
+      expect(dispatchedActions).toEqual([
+        {
+          type: SUBSCRIBE_TO_VALUES,
+          paths: ['/foo', '/bar'],
+        },
+      ]);
     });
 
     it('takes a function that is given state and props to generate paths', () => {
       const state = store.getState();
-      render(<SmartComponent foo="1" bar="2"/>);
-      expect(mapStateToPaths).toHaveBeenCalledWith(state, {foo: "1", bar: "2"});
+      render(<SmartComponent foo="1" bar="2" />);
+      expect(mapStateToPaths).toHaveBeenCalledWith(state, {foo: '1', bar: '2'});
     });
 
-    it("throws a helpful error message if the function does not return an array of paths", () => {
+    it('throws a helpful error message if the function does not return an array of paths', () => {
       mapStateToPaths.mockReturnValue('/foo');
-      expect(() => render(<SmartComponent foo="1" bar="2"/>)).toThrowError(
-        "The function given to subscribePaths() must return an array of strings"
+      expect(() => render(<SmartComponent foo="1" bar="2" />)).toThrowError(
+        'The function given to subscribePaths() must return an array of strings'
       );
     });
   });
 
-  describe("The subscribeProps higher-order-component", () => {
+  describe('The subscribeProps higher-order-component', () => {
     let mapPropsToSubscriptions, SmartComponent, fooById;
     beforeEach(() => {
       fooById = new Subscription({
@@ -100,7 +105,10 @@ describe("the hoc.js module", () => {
     it('takes a function that is given state and props to generate a props subscription object', () => {
       const state = store.getState();
       render(<SmartComponent foo="1" bar="2" />);
-      expect(mapPropsToSubscriptions).toHaveBeenCalledWith(state, {foo: "1", bar: "2"});
+      expect(mapPropsToSubscriptions).toHaveBeenCalledWith(state, {
+        foo: '1',
+        bar: '2',
+      });
     });
 
     it('takes an object mapping props to subscriptions', () => {
@@ -108,32 +116,32 @@ describe("the hoc.js module", () => {
       render(<SmartComponent id="1" />);
     });
 
-    it("will pass the state and props to each of the props subscriptions", () => {
+    it('will pass the state and props to each of the props subscriptions', () => {
       mapPropsToSubscriptions.mockReturnValue({foo: fooById});
       const state = store.getState();
       render(<SmartComponent id="1" bar="2" />);
-      expect(fooById.paths).toHaveBeenCalledWith(state, {id: "1", bar: "2"});
-      expect(fooById.value).toHaveBeenCalledWith(state, {id: "1", bar: "2"});
+      expect(fooById.paths).toHaveBeenCalledWith(state, {id: '1', bar: '2'});
+      expect(fooById.value).toHaveBeenCalledWith(state, {id: '1', bar: '2'});
     });
 
-    it("will subscribe to all the paths of the various subscriptions", () => {
+    it('will subscribe to all the paths of the various subscriptions', () => {
       mapPropsToSubscriptions.mockReturnValue({foo: fooById});
       fooById.paths.mockReturnValue(['/foo', '/bar']);
       expect(dispatchedActions).toEqual([]);
       render(<SmartComponent />);
-      expect(dispatchedActions).toEqual([{
-        type: SUBSCRIBE_TO_VALUES,
-        paths: ['/foo', '/bar'],
-      }]);
+      expect(dispatchedActions).toEqual([
+        {
+          type: SUBSCRIBE_TO_VALUES,
+          paths: ['/foo', '/bar'],
+        },
+      ]);
     });
 
-    it("will populate the prop with whatever the subscription returns", () => {
+    it('will populate the prop with whatever the subscription returns', () => {
       const value = {};
       mapPropsToSubscriptions.mockReturnValue({foo: fooById});
       fooById.value.mockReturnValue(value);
       expect(render(<SmartComponent />).props().foo).toBe(value);
     });
-
   });
-
 });

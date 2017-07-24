@@ -30,12 +30,10 @@ describe('The actions module', () => {
     dispatchedActions = [];
     const middlewares = [
       thunkMiddleware,
-      () =>
-        next =>
-          (action: any) => {
-            dispatchedActions.push(action);
-            return next(action);
-          },
+      () => next => (action: any) => {
+        dispatchedActions.push(action);
+        return next(action);
+      },
     ];
 
     const reducer = reduxFirebaseMirror({
@@ -45,7 +43,7 @@ describe('The actions module', () => {
     store = createStore(
       reducer,
       Immutable.Map(),
-      applyMiddleware(...middlewares),
+      applyMiddleware(...middlewares)
     );
   });
 
@@ -86,8 +84,8 @@ describe('The actions module', () => {
                   path === 'null'
                     ? null
                     : path === 'bad-json'
-                        ? 'fkjdalfhjd'
-                        : JSON.stringify('value for ' + path),
+                      ? 'fkjdalfhjd'
+                      : JSON.stringify('value for ' + path)
               ),
           };
         });
@@ -96,7 +94,7 @@ describe('The actions module', () => {
           store.dispatch(
             loadValuesFromCache(['/null'], {
               storage,
-            }),
+            })
           );
           expect(storage.getItem).toHaveBeenCalledWith('null');
           expect(dispatchedActions).toEqual([]);
@@ -106,7 +104,7 @@ describe('The actions module', () => {
           store.dispatch(
             loadValuesFromCache(['/bad-json'], {
               storage,
-            }),
+            })
           );
           expect(storage.getItem).toHaveBeenCalledWith('bad-json');
           expect(dispatchedActions).toEqual([]);
@@ -116,7 +114,7 @@ describe('The actions module', () => {
           store.dispatch(
             loadValuesFromCache(['/foo', '/bar'], {
               storage,
-            }),
+            })
           );
           expect(storage.getItem).toHaveBeenCalledWith('foo');
           expect(storage.getItem).toHaveBeenCalledWith('bar');
@@ -144,12 +142,13 @@ describe('The actions module', () => {
             getItem: jest
               .fn()
               .mockImplementation(async path =>
-                JSON.stringify('value for ' + path)),
+                JSON.stringify('value for ' + path)
+              ),
           };
         });
         it('will load values from a cache asynchronously', async () => {
           await Promise.all(
-            store.dispatch(loadValuesFromCache(['/foo', '/bar'], {storage})),
+            store.dispatch(loadValuesFromCache(['/foo', '/bar'], {storage}))
           );
           expect(storage.getItem).toHaveBeenCalledWith('foo');
           expect(storage.getItem).toHaveBeenCalledWith('bar');
@@ -183,11 +182,11 @@ describe('The actions module', () => {
           expect(firebase.database().ref).toHaveBeenCalledWith('/bar');
           expect(refs['/foo'].on).toHaveBeenCalledWith(
             'value',
-            jasmine.any(Function),
+            jasmine.any(Function)
           );
           expect(refs['/bar'].on).toHaveBeenCalledWith(
             'value',
-            jasmine.any(Function),
+            jasmine.any(Function)
           );
         });
 
@@ -212,7 +211,7 @@ describe('The actions module', () => {
             expect(refs['/bar'].on).toHaveBeenCalledTimes(1);
             expect(refs['/zap'].on).toHaveBeenCalledWith(
               'value',
-              jasmine.any(Function),
+              jasmine.any(Function)
             );
           });
 
@@ -310,11 +309,11 @@ describe('The actions module', () => {
       it("will call the firebase ref's once('value') method for each path", () => {
         expect(refs['/foo'].once).toHaveBeenCalledWith(
           'value',
-          jasmine.any(Function),
+          jasmine.any(Function)
         );
         expect(refs['/bar'].once).toHaveBeenCalledWith(
           'value',
-          jasmine.any(Function),
+          jasmine.any(Function)
         );
       });
 

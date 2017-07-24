@@ -62,7 +62,7 @@ export function loadValuesFromCache(paths: string[], config) {
       const storage = config.storage || localStorage;
       return paths.map(path => {
         let valueOrPromise = storage.getItem(
-          storagePrefix + normalizePath(path),
+          storagePrefix + normalizePath(path)
         );
         const receiveFromCache = cached => {
           if (!cached) {
@@ -112,7 +112,8 @@ export function fetchValues(paths: string[], callback: ?() => void) {
         }
       };
       paths.forEach(path =>
-        firebase.database().ref(path).once('value', dispatchSnapshot));
+        firebase.database().ref(path).once('value', dispatchSnapshot)
+      );
     });
   };
 }

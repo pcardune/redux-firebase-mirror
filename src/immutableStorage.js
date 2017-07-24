@@ -19,8 +19,11 @@ const immutableStorage: StorageAPI<MirrorType, ValueType> = {
     return mirror.getIn(splitPath(path));
   },
 
-  setValues(mirror: MirrorType, values: {[path: string]: JSONType}): MirrorType {
-    return mirror.withMutations((mirror) => {
+  setValues(
+    mirror: MirrorType,
+    values: {[path: string]: JSONType}
+  ): MirrorType {
+    return mirror.withMutations(mirror => {
       Object.entries(values).forEach(([path, value]) => {
         mirror.setIn(splitPath(path), Immutable.fromJS(value));
       });

@@ -7,7 +7,7 @@ export const DEFAULT_CONFIG = {
   getFirebaseState(state) {
     if (!state[DEFAULT_MOUNT_KEY]) {
       throw new Error(
-        `redux-firebase-mirror's reducer must be mounted with combineReducers() under the '${DEFAULT_MOUNT_KEY}' key`,
+        `redux-firebase-mirror's reducer must be mounted with combineReducers() under the '${DEFAULT_MOUNT_KEY}' key`
       );
     }
     return state[DEFAULT_MOUNT_KEY];

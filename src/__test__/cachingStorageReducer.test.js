@@ -30,7 +30,7 @@ describe('cachingStorageReducer', () => {
       });
       expect(global.localStorage.setItem).toHaveBeenCalledWith(
         'foo/bar',
-        '{"id":1,"name":"paul"}',
+        '{"id":1,"name":"paul"}'
       );
     });
 
@@ -55,7 +55,7 @@ describe('cachingStorageReducer', () => {
           },
           subscriptions: {},
         });
-      },
+      }
     );
   });
 });
