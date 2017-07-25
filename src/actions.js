@@ -15,6 +15,7 @@ import {
   RECEIVE_SNAPSHOT,
   UNSUBSCRIBE_FROM_VALUES,
   SUBSCRIBE_TO_VALUES,
+  DEFAULT_CACHE_PREFIX,
 } from './constants';
 
 export type FSA =
@@ -64,13 +65,17 @@ export function subscribeToValues<S>(paths: PathSpec[]) {
     if (paths.length == 0) {
       return;
     }
+    const stringPaths = paths.map(
+      path => (typeof path === 'string' ? path : path.path)
+    );
     if (CONFIG.persistToLocalStorage) {
-      dispatch(loadValuesFromCache(paths, CONFIG.persistToLocalStorage));
+      // TODO: we probably need to keep track of full path specs?
+      dispatch(loadValuesFromCache(stringPaths, CONFIG.persistToLocalStorage));
     }
     dispatch({
       type: SUBSCRIBE_TO_VALUES,
       // TODO: we probably need to keep track of full path specs
-      paths: paths.map(path => (typeof path === 'string' ? path : path.path)),
+      paths: stringPaths,
     });
     const dispatchSnapshot = snapshot => dispatch(receiveSnapshot(snapshot));
     paths.forEach(path => {
@@ -105,7 +110,7 @@ export function subscribeToValues<S>(paths: PathSpec[]) {
 export function loadValuesFromCache(paths: string[], config) {
   return dispatch => {
     if (config) {
-      const storagePrefix = config.storagePrefix || '';
+      const storagePrefix = config.storagePrefix || DEFAULT_CACHE_PREFIX;
       const storage = config.storage || localStorage;
       return paths.map(path => {
         let valueOrPromise = storage.getItem(
