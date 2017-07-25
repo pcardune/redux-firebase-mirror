@@ -29,9 +29,11 @@ export type PathConfig = {
     limitToFirst?: number,
     endAt?: number,
     startAt?: number,
-    equalTo?: any, // TODO: specify this more carefully
+    equalTo?: any, // TODO: specify this more carefully?
   },
-  orderBy?: 'child' | 'key' | 'value',
+  orderByChild?: string,
+  orderByKey?: boolean,
+  orderByValue?: boolean,
 };
 export type PathSpec = string | PathConfig;
 
@@ -77,23 +79,17 @@ export function subscribeToValues<S>(paths: PathSpec[]) {
         ref = firebase.database().ref(path);
       } else {
         ref = firebase.database().ref(path.path);
+        if (path.orderByKey) {
+          ref = ref.orderByKey();
+        } else if (path.orderByValue) {
+          ref = ref.orderByValue();
+        } else if (path.orderByChild) {
+          ref = ref.orderByChild(path.orderByChild);
+        }
         if (path.filter) {
           Object.keys(path.filter).forEach(key => {
             ref = ref[key](path.filter[key]);
           });
-        }
-        if (path.orderBy) {
-          const func = {
-            child: ref.orderByChild,
-            key: ref.orderByKey,
-            value: ref.orderByValue,
-          }[path.orderBy];
-          if (!func) {
-            throw new Error(
-              "invalid orderBy value. Must be one of 'value', 'key', or 'child'"
-            );
-          }
-          ref = func.call(ref);
         }
       }
       ref.on('value', dispatchSnapshot);

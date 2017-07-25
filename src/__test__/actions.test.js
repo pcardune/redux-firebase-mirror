@@ -181,6 +181,68 @@ describe('The actions module', () => {
     });
 
     describe('The subscribeToValues() action creator', () => {
+      describe('when handling path spec objects', () => {
+        it('will handle the orderByKey config', () => {
+          store.dispatch(
+            subscribeToValues([
+              {
+                path: '/baz',
+                orderByKey: true,
+              },
+            ])
+          );
+          expect(refs['/baz'].orderByKey).toHaveBeenCalled();
+        });
+
+        it('will handle the orderByValue config', () => {
+          store.dispatch(
+            subscribeToValues([
+              {
+                path: '/baz',
+                orderByValue: true,
+              },
+            ])
+          );
+          expect(refs['/baz'].orderByValue).toHaveBeenCalled();
+        });
+
+        it('will handle the orderByChild config', () => {
+          store.dispatch(
+            subscribeToValues([
+              {
+                path: '/baz',
+                orderByChild: 'someChildKey',
+              },
+            ])
+          );
+          expect(refs['/baz'].orderByChild).toHaveBeenCalledWith(
+            'someChildKey'
+          );
+        });
+
+        it('will call all the appropriate filter functions', () => {
+          store.dispatch(
+            subscribeToValues([
+              {
+                path: '/baz',
+                filter: {
+                  limitToLast: 10,
+                  limitToFirst: 15,
+                  startAt: 50,
+                  endAt: 100,
+                  equalTo: 'foo',
+                },
+              },
+            ])
+          );
+          expect(refs['/baz'].limitToLast).toHaveBeenCalledWith(10);
+          expect(refs['/baz'].limitToFirst).toHaveBeenCalledWith(15);
+          expect(refs['/baz'].startAt).toHaveBeenCalledWith(50);
+          expect(refs['/baz'].endAt).toHaveBeenCalledWith(100);
+          expect(refs['/baz'].equalTo).toHaveBeenCalledWith('foo');
+        });
+      });
+
       describe('when dispatched with a list of paths', () => {
         beforeEach(() => {
           store.dispatch(
@@ -190,7 +252,7 @@ describe('The actions module', () => {
               {
                 path: '/baz',
                 filter: {limitToLast: 1, startAt: 10},
-                orderBy: 'key',
+                orderByKey: true,
               },
             ])
           );
