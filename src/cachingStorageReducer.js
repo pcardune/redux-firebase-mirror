@@ -2,7 +2,7 @@
 //@flow
 import {combineReducers} from 'redux-immutable';
 import * as Immutable from 'immutable';
-import {RECEIVE_SNAPSHOT} from './constants';
+import {RECEIVE_SNAPSHOT, DEFAULT_CACHE_PREFIX} from './constants';
 import {normalizePath} from './util';
 
 interface Storage {
@@ -26,7 +26,7 @@ export default (config: ?{storagePrefix?: ?string, storage?: ?Storage}) =>
     },
     mirror(state = Immutable.Map(), action) {
       config = config || {};
-      const storagePrefix = config.storagePrefix || '';
+      const storagePrefix = config.storagePrefix || DEFAULT_CACHE_PREFIX;
       const storage = config.storage || localStorage;
       switch (action.type) {
         case RECEIVE_SNAPSHOT:

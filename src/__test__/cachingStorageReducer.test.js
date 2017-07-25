@@ -29,7 +29,7 @@ describe('cachingStorageReducer', () => {
         value: {id: 1, name: 'paul'},
       });
       expect(global.localStorage.setItem).toHaveBeenCalledWith(
-        'foo/bar',
+        'firebase-mirror:foo/bar',
         '{"id":1,"name":"paul"}'
       );
     });

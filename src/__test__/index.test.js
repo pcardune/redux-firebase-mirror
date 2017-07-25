@@ -115,7 +115,10 @@ describe('The redux-firebase-mirror module', () => {
           path: 'foo/bar/baz',
           value: 1,
         });
-        expect(storage.setItem).toHaveBeenCalledWith('foo/bar/baz', '1');
+        expect(storage.setItem).toHaveBeenCalledWith(
+          'firebase-mirror:foo/bar/baz',
+          '1'
+        );
         expect(store.getState().toJS()).toEqual({
           mirror: {foo: {bar: {baz: 1}}},
           subscriptions: {},
@@ -184,7 +187,7 @@ describe('The redux-firebase-mirror module', () => {
             fromCache: true,
             path: '/foo',
             type: 'FIREBASE/RECEIVE_SNAPSHOT',
-            value: 'value of foo',
+            value: 'value of firebase-mirror:foo',
           },
           {paths: ['/foo'], type: 'FIREBASE/SUBSCRIBE_TO_VALUES'},
         ]);

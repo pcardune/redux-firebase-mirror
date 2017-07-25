@@ -91,9 +91,9 @@ describe('The actions module', () => {
               .fn()
               .mockImplementation(
                 path =>
-                  path === 'null'
+                  path === 'firebase-mirror:null'
                     ? null
-                    : path === 'bad-json'
+                    : path === 'firebase-mirror:bad-json'
                       ? 'fkjdalfhjd'
                       : JSON.stringify('value for ' + path)
               ),
@@ -106,7 +106,7 @@ describe('The actions module', () => {
               storage,
             })
           );
-          expect(storage.getItem).toHaveBeenCalledWith('null');
+          expect(storage.getItem).toHaveBeenCalledWith('firebase-mirror:null');
           expect(dispatchedActions).toEqual([]);
         });
 
@@ -116,7 +116,9 @@ describe('The actions module', () => {
               storage,
             })
           );
-          expect(storage.getItem).toHaveBeenCalledWith('bad-json');
+          expect(storage.getItem).toHaveBeenCalledWith(
+            'firebase-mirror:bad-json'
+          );
           expect(dispatchedActions).toEqual([]);
         });
 
@@ -126,19 +128,19 @@ describe('The actions module', () => {
               storage,
             })
           );
-          expect(storage.getItem).toHaveBeenCalledWith('foo');
-          expect(storage.getItem).toHaveBeenCalledWith('bar');
+          expect(storage.getItem).toHaveBeenCalledWith('firebase-mirror:foo');
+          expect(storage.getItem).toHaveBeenCalledWith('firebase-mirror:bar');
           expect(dispatchedActions).toEqual([
             {
               type: 'FIREBASE/RECEIVE_SNAPSHOT',
               path: '/foo',
-              value: 'value for foo',
+              value: 'value for firebase-mirror:foo',
               fromCache: true,
             },
             {
               type: 'FIREBASE/RECEIVE_SNAPSHOT',
               path: '/bar',
-              value: 'value for bar',
+              value: 'value for firebase-mirror:bar',
               fromCache: true,
             },
           ]);
@@ -160,19 +162,19 @@ describe('The actions module', () => {
           await Promise.all(
             store.dispatch(loadValuesFromCache(['/foo', '/bar'], {storage}))
           );
-          expect(storage.getItem).toHaveBeenCalledWith('foo');
-          expect(storage.getItem).toHaveBeenCalledWith('bar');
+          expect(storage.getItem).toHaveBeenCalledWith('firebase-mirror:foo');
+          expect(storage.getItem).toHaveBeenCalledWith('firebase-mirror:bar');
           expect(dispatchedActions).toEqual([
             {
               type: 'FIREBASE/RECEIVE_SNAPSHOT',
               path: '/foo',
-              value: 'value for foo',
+              value: 'value for firebase-mirror:foo',
               fromCache: true,
             },
             {
               type: 'FIREBASE/RECEIVE_SNAPSHOT',
               path: '/bar',
-              value: 'value for bar',
+              value: 'value for firebase-mirror:bar',
               fromCache: true,
             },
           ]);
