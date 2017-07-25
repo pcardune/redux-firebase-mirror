@@ -11,7 +11,7 @@ describe('Subscription', () => {
     sub = new Subscription({paths, value});
   });
 
-  it("takes in an object with a paths and value function", () => {
+  it('takes in an object with a paths and value function', () => {
     expect(sub.paths).toBe(paths);
     expect(sub.value).toBe(value);
   });
@@ -35,10 +35,11 @@ describe('Subscription', () => {
 
       paths.mockImplementation(() => ['first']);
 
-      const fetchAction = () => new Promise((resolve) => {
-        paths.mockImplementation(() => ['first', 'second']);
-        resolve();
-      });
+      const fetchAction = () =>
+        new Promise(resolve => {
+          paths.mockImplementation(() => ['first', 'second']);
+          resolve();
+        });
       actions.fetchValues.mockReturnValue(fetchAction);
 
       const resultPromise = sub.fetchNow(store, {fooId: 3});
@@ -48,10 +49,11 @@ describe('Subscription', () => {
       expect(resultPromise).toBeInstanceOf(Promise);
       return resultPromise.then(result => {
         expect(actions.fetchValues.mock.calls.length).toBe(2);
-        expect(actions.fetchValues.mock.calls[1]).toEqual([['first', 'second']]);
+        expect(actions.fetchValues.mock.calls[1]).toEqual([
+          ['first', 'second'],
+        ]);
         expect(result).toBe('value of 3');
       });
-
     });
   });
 });

@@ -2,7 +2,7 @@
 //@flow
 import {combineReducers} from 'redux-immutable';
 import * as Immutable from 'immutable';
-import {RECEIVE_SNAPSHOT} from './actions';
+import {RECEIVE_SNAPSHOT} from './constants';
 import {normalizePath} from './util';
 
 interface Storage {
@@ -33,7 +33,7 @@ export default (config: ?{storagePrefix?: ?string, storage?: ?Storage}) =>
           if (!action.fromCache) {
             storage.setItem(
               storagePrefix + normalizePath(action.path),
-              JSON.stringify(action.value),
+              JSON.stringify(action.value)
             );
           }
           return state;

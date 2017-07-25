@@ -14,7 +14,8 @@
     "prepublish": "npm run build",
     "lint": "eslint src/ examples/",
     "build": "rm -rf dist && babel --ignore '*.test.js' -d dist src/",
-    "docs": "documentation build -f html -o docs src/**/*.js"
+    "docs": "documentation build -f html -o docs src/**/*.js",
+    "prettier": "prettier --single-quote --trailing-comma es5 --no-bracket-spacing --write src/**/*.js src/*.js examples/*.js examples/*.jsx"
   },
   "files": [
     "README.md",

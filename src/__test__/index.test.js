@@ -30,7 +30,7 @@ describe('The redux-firebase-mirror module', () => {
           getFirebaseState: state => state,
         }),
         Immutable.Map(),
-        applyMiddleware(thunkMiddleware),
+        applyMiddleware(thunkMiddleware)
       );
     });
 
@@ -79,12 +79,13 @@ describe('The redux-firebase-mirror module', () => {
       beforeEach(() => reduxFirebaseMirror());
       it('will throw an error if no state is available at the firebaseMirror key', () => {
         expect(() => getFirebaseMirror({})).toThrowError(
-          "redux-firebase-mirror's reducer must be mounted with combineReducers() under the 'firebaseMirror' key",
+          "redux-firebase-mirror's reducer must be mounted with combineReducers() under the 'firebaseMirror' key"
         );
       });
       it('will not throw an error if the state is available at said key', () => {
         expect(() =>
-          getFirebaseMirror({firebaseMirror: Immutable.Map()})).not.toThrow();
+          getFirebaseMirror({firebaseMirror: Immutable.Map()})
+        ).not.toThrow();
       });
     });
   });
@@ -104,7 +105,7 @@ describe('The redux-firebase-mirror module', () => {
             },
           }),
           Immutable.Map(),
-          applyMiddleware(thunkMiddleware),
+          applyMiddleware(thunkMiddleware)
         );
       });
 
@@ -144,12 +145,10 @@ describe('The redux-firebase-mirror module', () => {
         dispatchedActions = [];
         store = createStore(
           combineReducers({firebaseMirror: reduxFirebaseMirror()}),
-          applyMiddleware(thunkMiddleware, () =>
-            next =>
-              (action: any) => {
-                dispatchedActions.push(action);
-                return next(action);
-              }),
+          applyMiddleware(thunkMiddleware, () => next => (action: any) => {
+            dispatchedActions.push(action);
+            return next(action);
+          })
         );
       });
       it('will just call actions.subscribeToValues', () => {
@@ -172,12 +171,10 @@ describe('The redux-firebase-mirror module', () => {
               },
             }),
           }),
-          applyMiddleware(thunkMiddleware, () =>
-            next =>
-              (action: any) => {
-                dispatchedActions.push(action);
-                return next(action);
-              }),
+          applyMiddleware(thunkMiddleware, () => next => (action: any) => {
+            dispatchedActions.push(action);
+            return next(action);
+          })
         );
       });
       it('will also call actions.loadValuesFromCache', () => {

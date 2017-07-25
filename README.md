@@ -92,7 +92,7 @@ Registers listeners for firebase `value` events at the specified paths. Whenever
 
 Param | Type | Description
 ------|------|------------
-`paths` | `string[]` | The array of firebase database paths to subscribe to.
+`paths` | `PathSpec[]` | The array of firebase database paths to subscribe to. See the `PathSpec` documentation below for more details on how to configure filtering and ordering of the results returned by firebase.
 
 returns: nothing
 
@@ -103,6 +103,41 @@ store.dispatch(subscribeToValues([
   `/profiles/${userId}`,
   `profilePics/${userId}/square`
 ]));
+```
+
+##### PathSpec
+
+A PathSpec is either a string specifying the exact path to a location in the
+firebase database or an object containing a path along with additional
+configuration information. The configuration object has the following shape:
+
+Param | Type | Description
+------|------|------------
+`path`  | `string` | the path to load from firebase
+`orderByKey` | `boolean` | If true, results will be ordered by the key
+`orderByValue` | `boolean` | If true, results will be ordered by value
+`orderByChild` | `string` | If given, results will be ordered by the value of the child with the given key
+`filter` | `Object` | See further configuration options below
+`filter.limitToLast` | `number` | results will be limited to the last N values
+`filter.limitToFirst` | `number` | results will be limited to the first N values
+`filter.startAt` | `number` | results will start at the given index
+`filter.endAt` | `number` | results will end at the given index
+`filter.equalTo` | `any` | results will match the given value
+
+For example, you can use `PathSpec` configuration objects to subscribe to the
+last 10 messages in an inbox for a given user:
+
+```js
+subscribeToValues([
+  {
+    path: '/messages',
+    orderByChild: 'sentTo',
+    filter: {
+      equalTo: userId,
+      limitToLast: 10,
+    },
+  }
+]);
 ```
 
 #### unsubscribeFromValues(paths)
@@ -205,7 +240,7 @@ Creates a new `Subscription` object which describes how to fetch and interpret v
 Param | Type | Description
 ------|------|------------
 `config` | `Object` | A configuration object for the subscription. See options below.
-`config.paths` | `Function` | A function that maps state and props to an array of paths.
+`config.paths` | `Function` | A function that maps state and props to an array of paths or `PathSpec` config objects.
 `config.value` | `Function` | A function that maps state and props to a particular value in the database.
 
 Example:

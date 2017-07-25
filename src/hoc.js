@@ -15,47 +15,56 @@ function ownProps(props) {
   return rest;
 }
 
-export function subscribePaths<RS, NP:Object, D, P:Object, S, C: React.Component<D, P, S>>(
-  mapPropsToPaths: (state: RS, props: NP) => string[]
-) {
+export function subscribePaths<
+  RS,
+  NP: Object,
+  D,
+  P: Object,
+  S,
+  C: React.Component<D, P, S>
+>(mapPropsToPaths: (state: RS, props: NP) => string[]) {
   function getPaths(props) {
     const paths = mapPropsToPaths(props.__state, ownProps(props));
     if (!Array.isArray(paths)) {
-      throw new Error("The function given to subscribePaths() must return an array of strings");
+      throw new Error(
+        'The function given to subscribePaths() must return an array of strings'
+      );
     }
     return paths;
   }
 
   return (ComponentToWrap: Class<C>) => {
     return connect(
-      (__state: RS)=>({__state}),
+      (__state: RS) => ({__state}),
       (__dispatch: Dispatch<*, *>) => ({__dispatch})
-    )(class WrapperComponent extends Component {
+    )(
+      class WrapperComponent extends Component {
+        props: NP &
+          P & {
+            __dispatch: Dispatch<*, *>,
+            __state: RS,
+          };
 
-      props: NP & P & {
-        __dispatch: Dispatch<*, *>,
-        __state: RS,
-      };
+        componentDidMount() {
+          this.props.__dispatch(subscribeToValues(getPaths(this.props)));
+        }
 
-      componentDidMount() {
-        this.props.__dispatch(subscribeToValues(getPaths(this.props)));
+        componentDidUpdate() {
+          const paths = getPaths(this.props);
+          // TODO: make this work.
+          // in theory we should have already subscribed to the values in the prev paths
+          // but that doesn't seem to be happening for some reason I do not yet understand.
+          // so to play it safe, ditch this micro-opitmization for now.
+          // const prevPaths = new Set(mapPropsToPaths(this.props.state, prevProps));
+          // const newPaths = paths.filter(path => !prevPaths.has(path));
+          this.props.__dispatch(subscribeToValues(paths));
+        }
+
+        render() {
+          return <ComponentToWrap {...ownProps(this.props)} />;
+        }
       }
-
-      componentDidUpdate() {
-        const paths = getPaths(this.props);
-        // TODO: make this work.
-        // in theory we should have already subscribed to the values in the prev paths
-        // but that doesn't seem to be happening for some reason I do not yet understand.
-        // so to play it safe, ditch this micro-opitmization for now.
-        // const prevPaths = new Set(mapPropsToPaths(this.props.state, prevProps));
-        // const newPaths = paths.filter(path => !prevPaths.has(path));
-        this.props.__dispatch(subscribeToValues(paths));
-      }
-
-      render() {
-        return <ComponentToWrap {...ownProps(this.props)} />;
-      }
-    });
+    );
   };
 }
 
@@ -66,17 +75,16 @@ export function subscribeProps(mapPropsToSubscriptionsMaybeFunc) {
   } else {
     mapPropsToSubscriptions = () => mapPropsToSubscriptionsMaybeFunc;
   }
-  return (ComponentToWrap) => {
+  return ComponentToWrap => {
     return compose(
-      subscribePaths(
-        (state, ownProps) => {
-          const subscriptionsMap = mapPropsToSubscriptions(state, ownProps);
-          return Object.values(subscriptionsMap).reduce(
-            (paths, subscription) => paths.concat(subscription.paths(state, ownProps)),
-            []
-          );
-        }
-      ),
+      subscribePaths((state, ownProps) => {
+        const subscriptionsMap = mapPropsToSubscriptions(state, ownProps);
+        return Object.values(subscriptionsMap).reduce(
+          (paths, subscription) =>
+            paths.concat(subscription.paths(state, ownProps)),
+          []
+        );
+      }),
       connect(
         (state, ownProps) => {
           const subscriptionsMap = mapPropsToSubscriptions(state, ownProps);
@@ -87,7 +95,7 @@ export function subscribeProps(mapPropsToSubscriptionsMaybeFunc) {
           return props;
         },
         () => ({})
-      ),
+      )
     )(ComponentToWrap);
   };
 }
