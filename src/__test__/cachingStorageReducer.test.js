@@ -1,6 +1,6 @@
 import cachingStorageReducer from '../cachingStorageReducer';
 import * as Immutable from 'immutable';
-import {RECEIVE_SNAPSHOT, SUBSCRIBE_TO_VALUES} from '../constants';
+import {RECEIVE_SNAPSHOTS, SUBSCRIBE_TO_VALUES} from '../constants';
 
 describe('cachingStorageReducer', () => {
   let reducer, state;
@@ -24,9 +24,10 @@ describe('cachingStorageReducer', () => {
 
     it('will populate local storage with received snapshot values', () => {
       reducer(undefined, {
-        type: RECEIVE_SNAPSHOT,
-        path: 'foo/bar',
-        value: {id: 1, name: 'paul'},
+        type: RECEIVE_SNAPSHOTS,
+        values: {
+          'foo/bar': {id: 1, name: 'paul'},
+        },
       });
       expect(global.localStorage.setItem).toHaveBeenCalledWith(
         'firebase-mirror:foo/bar',

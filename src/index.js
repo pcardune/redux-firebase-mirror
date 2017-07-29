@@ -31,7 +31,8 @@ import {isSubscribedToValue, getFirebaseMirror} from './selectors';
  *   persistToLocalStorage: {
  *     storagePrefix: 'firebase-cache',
  *     storage: window.sessionStorage,
- *   }
+ *   },
+ *   syncInterval: 30,
  * });
  *
  * @param {Object} [config] - optional configuration with which to initialize `redux-firebase-mirror`
@@ -39,6 +40,7 @@ import {isSubscribedToValue, getFirebaseMirror} from './selectors';
  *        redux state where the reducer was applied.
  * @param {PersistanceConfig} [config.persistToLocalStorage] - whether or not to persist firebase
  *        data to local storage
+ * @param {number} [config.syncInterval] - minimum number of milliseconds between receiveSnapshot dispatches
  * @returns {ConfiguredModule} an object containing both the reducer and a set of selectors.
  */
 export default function configureReducer(
@@ -52,12 +54,14 @@ export default function configureReducer(
       },
     },
     storageAPI?: ?StorageAPI<*, *>,
+    syncInterval?: ?number,
   }
 ) {
   config = {...DEFAULT_CONFIG, ...config};
   CONFIG.getFirebaseState = config.getFirebaseState;
   CONFIG.storageAPI = config.storageAPI;
   CONFIG.persistToLocalStorage = config.persistToLocalStorage;
+  CONFIG.syncInterval = config.syncInterval;
 
   let reducer;
   const stateReducer = getReducer(CONFIG.storageAPI);
@@ -85,7 +89,7 @@ export function getValueAtPath(state: any, path: string) {
   return CONFIG.storageAPI.getValueAtPath(getFirebaseMirror(state), path);
 }
 
-export const RECEIVE_SNAPSHOT = actions.RECEIVE_SNAPSHOT;
+export const RECEIVE_SNAPSHOTS = actions.RECEIVE_SNAPSHOTS;
 export const UNSUBSCRIBE_FROM_VALUES = actions.UNSUBSCRIBE_FROM_VALUES;
 export const SUBSCRIBE_TO_VALUES = actions.SUBSCRIBE_TO_VALUES;
 

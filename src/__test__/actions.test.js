@@ -132,15 +132,11 @@ describe('The actions module', () => {
           expect(storage.getItem).toHaveBeenCalledWith('firebase-mirror:bar');
           expect(dispatchedActions).toEqual([
             {
-              type: 'FIREBASE/RECEIVE_SNAPSHOT',
-              path: '/foo',
-              value: 'value for firebase-mirror:foo',
-              fromCache: true,
-            },
-            {
-              type: 'FIREBASE/RECEIVE_SNAPSHOT',
-              path: '/bar',
-              value: 'value for firebase-mirror:bar',
+              type: 'FIREBASE/RECEIVE_SNAPSHOTS',
+              values: {
+                '/foo': 'value for firebase-mirror:foo',
+                '/bar': 'value for firebase-mirror:bar',
+              },
               fromCache: true,
             },
           ]);
@@ -166,15 +162,11 @@ describe('The actions module', () => {
           expect(storage.getItem).toHaveBeenCalledWith('firebase-mirror:bar');
           expect(dispatchedActions).toEqual([
             {
-              type: 'FIREBASE/RECEIVE_SNAPSHOT',
-              path: '/foo',
-              value: 'value for firebase-mirror:foo',
-              fromCache: true,
-            },
-            {
-              type: 'FIREBASE/RECEIVE_SNAPSHOT',
-              path: '/bar',
-              value: 'value for firebase-mirror:bar',
+              type: 'FIREBASE/RECEIVE_SNAPSHOTS',
+              values: {
+                '/foo': 'value for firebase-mirror:foo',
+                '/bar': 'value for firebase-mirror:bar',
+              },
               fromCache: true,
             },
           ]);
@@ -332,12 +324,11 @@ describe('The actions module', () => {
             );
           });
 
-          it('will dispatch a FIREBASE/RECEIVE_SNAPSHOT event', () => {
+          it('will dispatch a FIREBASE/RECEIVE_SNAPSHOTS event', () => {
             expect(dispatchedActions.length).toBe(2);
             expect(dispatchedActions[1]).toEqual({
-              type: 'FIREBASE/RECEIVE_SNAPSHOT',
-              path: 'foo&bar',
-              value: 'foo-value',
+              type: 'FIREBASE/RECEIVE_SNAPSHOTS',
+              values: {'foo&bar': 'foo-value'},
             });
           });
         });
@@ -415,12 +406,11 @@ describe('The actions module', () => {
           refs['/foo'].once.mock.calls[0][1](mockSnapshot('/foo', 'foo-value'));
         });
 
-        it('will dispatch a receiveSnapshot action for each firebase value it receives', () => {
+        it('will dispatch a receiveSnapshots action for each firebase value it receives', () => {
           expect(dispatchedActions).toEqual([
             {
-              type: 'FIREBASE/RECEIVE_SNAPSHOT',
-              path: 'foo',
-              value: 'foo-value',
+              type: 'FIREBASE/RECEIVE_SNAPSHOTS',
+              values: {foo: 'foo-value'},
             },
           ]);
         });

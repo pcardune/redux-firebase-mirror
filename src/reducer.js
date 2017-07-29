@@ -4,7 +4,7 @@ import * as Immutable from 'immutable';
 
 import type {StorageAPI} from './types';
 import {
-  RECEIVE_SNAPSHOT,
+  RECEIVE_SNAPSHOTS,
   UNSUBSCRIBE_FROM_VALUES,
   SUBSCRIBE_TO_VALUES,
 } from './constants';
@@ -31,10 +31,8 @@ export default <M, V>(storageAPI: StorageAPI<M, V>) =>
         state = storageAPI.getInitialMirror();
       }
       switch (action.type) {
-        case RECEIVE_SNAPSHOT:
-          return storageAPI.setValues(state, {
-            [action.path]: action.value,
-          });
+        case RECEIVE_SNAPSHOTS:
+          return storageAPI.setValues(state, action.values);
         default:
           return state;
       }
