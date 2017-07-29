@@ -42,9 +42,8 @@ describe('The redux-firebase-mirror module', () => {
 
       it('should return a list of keys for a path that has been fetched', () => {
         store.dispatch({
-          type: 'FIREBASE/RECEIVE_SNAPSHOT',
-          path: 'foo/bar/baz',
-          value: 1,
+          type: 'FIREBASE/RECEIVE_SNAPSHOTS',
+          values: {'foo/bar/baz': 1},
         });
         expect(getKeysAtPath(store.getState(), 'foo')).toEqual(['bar']);
         expect(getKeysAtPath(store.getState(), 'foo/bar')).toEqual(['baz']);
@@ -59,9 +58,8 @@ describe('The redux-firebase-mirror module', () => {
       });
       it('should return the value when it has been fetched', () => {
         store.dispatch({
-          type: 'FIREBASE/RECEIVE_SNAPSHOT',
-          path: 'foo/bar/baz',
-          value: 1,
+          type: 'FIREBASE/RECEIVE_SNAPSHOTS',
+          values: {'foo/bar/baz': 1},
         });
         const foo = getValueAtPath(store.getState(), 'foo');
         if (foo instanceof Immutable.Map) {
@@ -111,9 +109,8 @@ describe('The redux-firebase-mirror module', () => {
 
       it('will cause the caching storage reducer to be called', () => {
         store.dispatch({
-          type: 'FIREBASE/RECEIVE_SNAPSHOT',
-          path: 'foo/bar/baz',
-          value: 1,
+          type: 'FIREBASE/RECEIVE_SNAPSHOTS',
+          values: {'foo/bar/baz': 1},
         });
         expect(storage.setItem).toHaveBeenCalledWith(
           'firebase-mirror:foo/bar/baz',
@@ -185,9 +182,10 @@ describe('The redux-firebase-mirror module', () => {
         expect(dispatchedActions).toEqual([
           {
             fromCache: true,
-            path: '/foo',
-            type: 'FIREBASE/RECEIVE_SNAPSHOT',
-            value: 'value of firebase-mirror:foo',
+            type: 'FIREBASE/RECEIVE_SNAPSHOTS',
+            values: {
+              '/foo': 'value of firebase-mirror:foo',
+            },
           },
           {paths: ['/foo'], type: 'FIREBASE/SUBSCRIBE_TO_VALUES'},
         ]);

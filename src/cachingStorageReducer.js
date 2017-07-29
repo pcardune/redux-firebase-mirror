@@ -2,7 +2,7 @@
 //@flow
 import {combineReducers} from 'redux-immutable';
 import * as Immutable from 'immutable';
-import {RECEIVE_SNAPSHOT, DEFAULT_CACHE_PREFIX} from './constants';
+import {RECEIVE_SNAPSHOTS, DEFAULT_CACHE_PREFIX} from './constants';
 import {normalizePath} from './util';
 
 interface Storage {
@@ -29,12 +29,14 @@ export default (config: ?{storagePrefix?: ?string, storage?: ?Storage}) =>
       const storagePrefix = config.storagePrefix || DEFAULT_CACHE_PREFIX;
       const storage = config.storage || localStorage;
       switch (action.type) {
-        case RECEIVE_SNAPSHOT:
+        case RECEIVE_SNAPSHOTS:
           if (!action.fromCache) {
-            storage.setItem(
-              storagePrefix + normalizePath(action.path),
-              JSON.stringify(action.value)
-            );
+            Object.keys(action.values).forEach(path => {
+              storage.setItem(
+                storagePrefix + normalizePath(path),
+                JSON.stringify(action.values[path])
+              );
+            });
           }
           return state;
         default:

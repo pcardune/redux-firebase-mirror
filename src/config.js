@@ -13,6 +13,7 @@ export const DEFAULT_CONFIG = {
     return state[DEFAULT_MOUNT_KEY];
   },
   persistToLocalStorage: false,
+  syncInterval: 30,
 };
 
 export const CONFIG = {...DEFAULT_CONFIG};

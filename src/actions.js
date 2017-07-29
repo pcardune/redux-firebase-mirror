@@ -12,14 +12,14 @@ import {isSubscribedToValue} from './selectors';
 import {CONFIG} from './config';
 import {normalizePath} from './util';
 import {
-  RECEIVE_SNAPSHOT,
+  RECEIVE_SNAPSHOTS,
   UNSUBSCRIBE_FROM_VALUES,
   SUBSCRIBE_TO_VALUES,
   DEFAULT_CACHE_PREFIX,
 } from './constants';
 
 export type FSA =
-  | {type: 'FIREBASE/RECEIVE_SNAPSHOT', path: string, value: JSONType}
+  | {type: 'FIREBASE/RECEIVE_SNAPSHOTS', path: string, value: JSONType}
   | {type: 'FIREBASE/UNSUBSCRIBE_FROM_VALUES', paths: string[]}
   | {type: 'FIREBASE/SUBSCRIBE_TO_VALUES', paths: string[]};
 export type Action = FSA | (<R>(d: Dispatch, getState: <S>() => S) => ?R);
@@ -38,15 +38,23 @@ export type PathConfig = {
 };
 export type PathSpec = string | PathConfig;
 
-function receiveSnapshot(snapshot) {
+function receiveSnapshots(snapshots) {
+  const values = {};
+  snapshots.forEach(snapshot => {
+    values[
+      decodeURIComponent(snapshot.ref.toString().split('/').slice(3).join('/'))
+    ] = snapshot.val();
+  });
   return {
-    type: RECEIVE_SNAPSHOT,
-    path: decodeURIComponent(
-      snapshot.ref.toString().split('/').slice(3).join('/')
-    ),
-    value: snapshot.val(),
+    type: RECEIVE_SNAPSHOTS,
+    values,
   };
 }
+
+export const _moduleState = {
+  dispatchTimeout: null,
+  receiveQueue: [],
+};
 
 /**
  * Subscribe to `'value'` changes for the specified list of paths in firebase.
@@ -77,7 +85,21 @@ export function subscribeToValues<S>(paths: PathSpec[]) {
       // TODO: we probably need to keep track of full path specs
       paths: stringPaths,
     });
-    const dispatchSnapshot = snapshot => dispatch(receiveSnapshot(snapshot));
+    const dispatchSnapshot = snapshot => {
+      if (_moduleState.dispatchTimeout) {
+        _moduleState.receiveQueue.push(snapshot);
+      } else {
+        dispatch(receiveSnapshots([snapshot]));
+        _moduleState.dispatchTimeout = setTimeout(() => {
+          _moduleState.dispatchTimeout = null;
+          const snapshots = _moduleState.receiveQueue;
+          _moduleState.receiveQueue = [];
+          if (snapshots.length > 0) {
+            dispatch(receiveSnapshots(snapshots));
+          }
+        }, CONFIG.syncInterval);
+      }
+    };
     paths.forEach(path => {
       let ref;
       if (typeof path === 'string') {
@@ -112,11 +134,26 @@ export function loadValuesFromCache(paths: string[], config) {
     if (config) {
       const storagePrefix = config.storagePrefix || DEFAULT_CACHE_PREFIX;
       const storage = config.storage || localStorage;
+      let valuesToDispatch = {};
+      let numReceived = 0;
+      let timeout = null;
+      const dispatchValues = () => {
+        const values = valuesToDispatch;
+        valuesToDispatch = {};
+        clearTimeout(timeout);
+        dispatch({
+          type: RECEIVE_SNAPSHOTS,
+          values,
+          fromCache: true,
+        });
+      };
+
       return paths.map(path => {
         let valueOrPromise = storage.getItem(
           storagePrefix + normalizePath(path)
         );
         const receiveFromCache = cached => {
+          numReceived++;
           if (!cached) {
             return;
           }
@@ -126,12 +163,22 @@ export function loadValuesFromCache(paths: string[], config) {
             // failed to parse json, just skip this.
             return;
           }
-          dispatch({
-            type: RECEIVE_SNAPSHOT,
-            path: path,
-            value: cached,
-            fromCache: true,
-          });
+          valuesToDispatch[path] = cached;
+          if (numReceived === paths.length) {
+            // once we have received everything from cache, dispatch the results
+            clearTimeout(timeout);
+            dispatch({
+              type: RECEIVE_SNAPSHOTS,
+              values: valuesToDispatch,
+              fromCache: true,
+            });
+          } else {
+            // wait sync interval before dispatching results
+            // so we don't dispatch too often and block the browser.
+            if (!timeout) {
+              timeout = setTimeout(dispatchValues, CONFIG.syncInterval);
+            }
+          }
           return cached;
         };
         if (valueOrPromise instanceof Promise) {
@@ -156,7 +203,7 @@ export function fetchValues(paths: string[], callback: ?() => void) {
     let numLeft = paths.length;
     return new Promise(resolve => {
       const dispatchSnapshot = snapshot => {
-        dispatch(receiveSnapshot(snapshot));
+        dispatch(receiveSnapshots([snapshot]));
         numLeft--;
         if (numLeft === 0) {
           callback && callback();

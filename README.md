@@ -77,6 +77,7 @@ Param         | Type | Description
 `config.persistToLocalStorage` | `Object` | A config object for persisting the mirror to local storage. If not provided, no data will be persisted. See below for the specific options
 `config.persistToLocalStorage.storage` | `localStorage\|sessionStorage` | Optionally specify a custom storage system. Defaults to using `localStorage`. Can be any object which implements the same API as `localStorage`. Also supports async storage apis such as react native's `AsyncStorage`.
 `config.persistToLocalStorage.storagePrefix` | `string` | Optionally specify a prefix to use for all keys given to localStorage. Defaults to `"firebase-mirror:"`.
+`config.syncInterval` | `number` | The minimum number of milliseconds between syncs to the redux store. Defaults to 30
 
 returns: a redux reducer function
 
