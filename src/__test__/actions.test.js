@@ -13,9 +13,11 @@ import {
   unsubscribeFromValues,
   fetchValues,
   loadValuesFromCache,
+  _moduleState,
 } from '../actions';
 
 jest.mock('firebase');
+jest.useFakeTimers();
 
 function mockSnapshot(path, value) {
   return {
@@ -72,6 +74,11 @@ describe('The actions module', () => {
           return refs[path];
         }),
       });
+    });
+    afterEach(() => {
+      clearTimeout(_moduleState.dispatchTimeout);
+      _moduleState.dispatchTimeout = null;
+      _moduleState.receiveQueue = [];
     });
 
     describe('The loadValuesFromCache() action creator', () => {
@@ -144,32 +151,119 @@ describe('The actions module', () => {
       });
 
       describe('when using an asynchronous storage backend', () => {
-        let storage;
-        beforeEach(() => {
-          storage = {
-            getItem: jest
-              .fn()
-              .mockImplementation(async path =>
-                JSON.stringify('value for ' + path)
+        describe('that is slow', () => {
+          let slowStorage, resolves;
+
+          beforeEach(() => {
+            resolves = [];
+            slowStorage = {
+              getItem: jest.fn().mockImplementation(
+                path =>
+                  new Promise(resolve => {
+                    resolves.push(() =>
+                      resolve(JSON.stringify(`value for ${path}`))
+                    );
+                  })
               ),
-          };
-        });
-        it('will load values from a cache asynchronously', async () => {
-          await Promise.all(
-            store.dispatch(loadValuesFromCache(['/foo', '/bar'], {storage}))
-          );
-          expect(storage.getItem).toHaveBeenCalledWith('firebase-mirror:foo');
-          expect(storage.getItem).toHaveBeenCalledWith('firebase-mirror:bar');
-          expect(dispatchedActions).toEqual([
-            {
-              type: 'FIREBASE/RECEIVE_SNAPSHOTS',
-              values: {
-                '/foo': 'value for firebase-mirror:foo',
-                '/bar': 'value for firebase-mirror:bar',
+            };
+          });
+
+          it('will load values from a cache asynchronously, batching according to syncInterval', async () => {
+            const paths = [];
+            for (let i = 0; i < 5; i++) {
+              paths.push(`/path-${i}`);
+            }
+            store.dispatch(loadValuesFromCache(paths, {storage: slowStorage}));
+            expect(slowStorage.getItem).toHaveBeenCalledWith(
+              'firebase-mirror:path-0'
+            );
+            expect(slowStorage.getItem).toHaveBeenCalledWith(
+              'firebase-mirror:path-1'
+            );
+            expect(resolves.length).toBe(5);
+            resolves[0]();
+            resolves[1]();
+            resolves[2]();
+            await Promise.resolve();
+            jest.runAllTimers();
+            await Promise.resolve();
+            // first batch has of async cache gets have finished
+            // so an action gets dispatched.
+            expect(dispatchedActions).toEqual([
+              {
+                type: 'FIREBASE/RECEIVE_SNAPSHOTS',
+                values: {
+                  '/path-0': 'value for firebase-mirror:path-0',
+                  '/path-1': 'value for firebase-mirror:path-1',
+                  '/path-2': 'value for firebase-mirror:path-2',
+                },
+                fromCache: true,
               },
-              fromCache: true,
-            },
-          ]);
+            ]);
+
+            // now we resolve the second batch of async gets...
+            resolves[3]();
+            resolves[4]();
+            jest.runAllTimers();
+            await Promise.resolve();
+            expect(dispatchedActions).toEqual([
+              {
+                type: 'FIREBASE/RECEIVE_SNAPSHOTS',
+                values: {
+                  '/path-0': 'value for firebase-mirror:path-0',
+                  '/path-1': 'value for firebase-mirror:path-1',
+                  '/path-2': 'value for firebase-mirror:path-2',
+                },
+                fromCache: true,
+              },
+              {
+                type: 'FIREBASE/RECEIVE_SNAPSHOTS',
+                values: {
+                  '/path-3': 'value for firebase-mirror:path-3',
+                  '/path-4': 'value for firebase-mirror:path-4',
+                },
+                fromCache: true,
+              },
+            ]);
+          });
+        });
+
+        describe('that is fast', () => {
+          let fastStorage;
+
+          beforeEach(() => {
+            fastStorage = {
+              getItem: jest
+                .fn()
+                .mockImplementation(async path =>
+                  JSON.stringify('value for ' + path)
+                ),
+            };
+          });
+
+          it('will load values from a cache asynchronously', async () => {
+            await Promise.all(
+              store.dispatch(
+                loadValuesFromCache(['/foo', '/bar'], {storage: fastStorage})
+              )
+            );
+            expect(fastStorage.getItem).toHaveBeenCalledWith(
+              'firebase-mirror:foo'
+            );
+            expect(fastStorage.getItem).toHaveBeenCalledWith(
+              'firebase-mirror:bar'
+            );
+            expect(dispatchedActions).toEqual([
+              {
+                type: 'FIREBASE/RECEIVE_SNAPSHOTS',
+                values: {
+                  '/foo': 'value for firebase-mirror:foo',
+                  '/bar': 'value for firebase-mirror:bar',
+                },
+                fromCache: true,
+              },
+            ]);
+          });
         });
       });
     });
@@ -329,6 +423,22 @@ describe('The actions module', () => {
             expect(dispatchedActions[1]).toEqual({
               type: 'FIREBASE/RECEIVE_SNAPSHOTS',
               values: {'foo&bar': 'foo-value'},
+            });
+          });
+
+          it('will wait to dispatch more FIREBASE/RECEIVE_SNAPSHOTS until CONFIG.syncInterval has ellapsed', () => {
+            refs['/baz'].on.mock.calls[0][1](mockSnapshot('/baz', 'baz-value'));
+            refs['/bar'].on.mock.calls[0][1](mockSnapshot('/bar', 'bar-value'));
+            expect(dispatchedActions.length).toBe(2);
+            expect(dispatchedActions[1]).toEqual({
+              type: 'FIREBASE/RECEIVE_SNAPSHOTS',
+              values: {'foo&bar': 'foo-value'},
+            });
+            jest.runAllTimers();
+            expect(dispatchedActions.length).toBe(3);
+            expect(dispatchedActions[2]).toEqual({
+              type: 'FIREBASE/RECEIVE_SNAPSHOTS',
+              values: {bar: 'bar-value', baz: 'baz-value'},
             });
           });
         });

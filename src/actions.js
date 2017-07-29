@@ -51,8 +51,10 @@ function receiveSnapshots(snapshots) {
   };
 }
 
-let dispatchTimeout = null;
-let receiveQueue = [];
+export const _moduleState = {
+  dispatchTimeout: null,
+  receiveQueue: [],
+};
 
 /**
  * Subscribe to `'value'` changes for the specified list of paths in firebase.
@@ -84,14 +86,14 @@ export function subscribeToValues<S>(paths: PathSpec[]) {
       paths: stringPaths,
     });
     const dispatchSnapshot = snapshot => {
-      if (dispatchTimeout) {
-        receiveQueue.push(snapshot);
+      if (_moduleState.dispatchTimeout) {
+        _moduleState.receiveQueue.push(snapshot);
       } else {
         dispatch(receiveSnapshots([snapshot]));
-        dispatchTimeout = setTimeout(() => {
-          dispatchTimeout = null;
-          const snapshots = receiveQueue;
-          receiveQueue = [];
+        _moduleState.dispatchTimeout = setTimeout(() => {
+          _moduleState.dispatchTimeout = null;
+          const snapshots = _moduleState.receiveQueue;
+          _moduleState.receiveQueue = [];
           if (snapshots.length > 0) {
             dispatch(receiveSnapshots(snapshots));
           }
@@ -135,6 +137,17 @@ export function loadValuesFromCache(paths: string[], config) {
       let valuesToDispatch = {};
       let numReceived = 0;
       let timeout = null;
+      const dispatchValues = () => {
+        const values = valuesToDispatch;
+        valuesToDispatch = {};
+        clearTimeout(timeout);
+        dispatch({
+          type: RECEIVE_SNAPSHOTS,
+          values,
+          fromCache: true,
+        });
+      };
+
       return paths.map(path => {
         let valueOrPromise = storage.getItem(
           storagePrefix + normalizePath(path)
@@ -162,15 +175,9 @@ export function loadValuesFromCache(paths: string[], config) {
           } else {
             // wait sync interval before dispatching results
             // so we don't dispatch too often and block the browser.
-            timeout = setTimeout(() => {
-              const values = valuesToDispatch;
-              valuesToDispatch = {};
-              dispatch({
-                type: RECEIVE_SNAPSHOTS,
-                values,
-                fromCache: true,
-              });
-            }, CONFIG.syncInterval);
+            if (!timeout) {
+              timeout = setTimeout(dispatchValues, CONFIG.syncInterval);
+            }
           }
           return cached;
         };
