@@ -12,10 +12,14 @@ import reduxFirebaseMirror, {
   getFirebaseMirror,
 } from '../index';
 import * as actions from '../actions';
+import {mockDate, restoreDate} from './mockDate';
 
 jest.mock('firebase');
 
 describe('The redux-firebase-mirror module', () => {
+  beforeAll(() => mockDate(() => 1451606400000));
+  afterAll(() => restoreDate());
+
   it('should export all the functions from the actions module', () => {
     expect(subscribeToValues).toEqual(jasmine.any(Function));
     expect(unsubscribeFromValues).toBe(actions.unsubscribeFromValues);
@@ -116,9 +120,8 @@ describe('The redux-firebase-mirror module', () => {
           'firebase-mirror:foo/bar/baz',
           '1'
         );
-        expect(store.getState().toJS()).toEqual({
-          mirror: {foo: {bar: {baz: 1}}},
-          subscriptions: {},
+        expect(store.getState().toJS().mirror).toEqual({
+          foo: {bar: {baz: 1}},
         });
       });
     });
