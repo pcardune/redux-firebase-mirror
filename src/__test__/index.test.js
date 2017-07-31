@@ -10,8 +10,10 @@ import reduxFirebaseMirror, {
   unsubscribeFromValues,
   fetchValues,
   getFirebaseMirror,
+  hasReceivedValue,
 } from '../index';
 import * as actions from '../actions';
+import {RECEIVE_SNAPSHOTS, SUBSCRIBE_TO_VALUES} from '../constants';
 import {mockDate, restoreDate} from './mockDate';
 
 jest.mock('firebase');
@@ -46,12 +48,26 @@ describe('The redux-firebase-mirror module', () => {
 
       it('should return a list of keys for a path that has been fetched', () => {
         store.dispatch({
-          type: 'FIREBASE/RECEIVE_SNAPSHOTS',
+          type: RECEIVE_SNAPSHOTS,
           values: {'foo/bar/baz': 1},
         });
         expect(getKeysAtPath(store.getState(), 'foo')).toEqual(['bar']);
         expect(getKeysAtPath(store.getState(), 'foo/bar')).toEqual(['baz']);
         expect(getKeysAtPath(store.getState(), 'foo/bar/baz')).toEqual([]);
+      });
+    });
+
+    describe('the hasReceivedValue selector', () => {
+      it('returns false for paths that have not been fetched yet', () => {
+        expect(hasReceivedValue(store.getState(), 'foo')).toBe(false);
+      });
+
+      it('returns true for paths that have been fetched, even if they returned undefined', () => {
+        store.dispatch({
+          type: RECEIVE_SNAPSHOTS,
+          values: {foo: undefined, bar: 1},
+        });
+        expect(hasReceivedValue(store.getState(), 'bar')).toBe(true);
       });
     });
 
@@ -62,7 +78,7 @@ describe('The redux-firebase-mirror module', () => {
       });
       it('should return the value when it has been fetched', () => {
         store.dispatch({
-          type: 'FIREBASE/RECEIVE_SNAPSHOTS',
+          type: RECEIVE_SNAPSHOTS,
           values: {'foo/bar/baz': 1},
         });
         const foo = getValueAtPath(store.getState(), 'foo');
@@ -113,7 +129,7 @@ describe('The redux-firebase-mirror module', () => {
 
       it('will cause the caching storage reducer to be called', () => {
         store.dispatch({
-          type: 'FIREBASE/RECEIVE_SNAPSHOTS',
+          type: RECEIVE_SNAPSHOTS,
           values: {'foo/bar/baz': 1},
         });
         expect(storage.setItem).toHaveBeenCalledWith(
@@ -155,9 +171,9 @@ describe('The redux-firebase-mirror module', () => {
         );
       });
       it('will just call actions.subscribeToValues', () => {
-        store.dispatch(subscribeToValues(['/foo']));
+        store.dispatch(subscribeToValues(['foo']));
         expect(dispatchedActions).toEqual([
-          {paths: ['/foo'], type: 'FIREBASE/SUBSCRIBE_TO_VALUES'},
+          {paths: ['foo'], type: SUBSCRIBE_TO_VALUES},
         ]);
       });
     });
@@ -181,16 +197,16 @@ describe('The redux-firebase-mirror module', () => {
         );
       });
       it('will also call actions.loadValuesFromCache', () => {
-        store.dispatch(subscribeToValues(['/foo']));
+        store.dispatch(subscribeToValues(['foo']));
         expect(dispatchedActions).toEqual([
           {
             fromCache: true,
-            type: 'FIREBASE/RECEIVE_SNAPSHOTS',
+            type: RECEIVE_SNAPSHOTS,
             values: {
-              '/foo': 'value of firebase-mirror:foo',
+              foo: 'value of firebase-mirror:foo',
             },
           },
-          {paths: ['/foo'], type: 'FIREBASE/SUBSCRIBE_TO_VALUES'},
+          {paths: ['foo'], type: SUBSCRIBE_TO_VALUES},
         ]);
       });
     });

@@ -33,14 +33,14 @@ describe('The reducer module', () => {
   describe('when given a RECEIVE_SNAPSHOTS action', () => {
     beforeEach(() => {
       state = state.setIn(
-        ['subscriptions', '/baz', 'time'],
+        ['subscriptions', 'baz', 'time'],
         new Date().getTime()
       );
       state = reduce(state, {
         type: RECEIVE_SNAPSHOTS,
         values: {
-          '/foo/bar': {name: 'Foo bar', createdOn: 12345},
-          '/baz': {name: 'Baz', createdOn: 12347},
+          'foo/bar': {name: 'Foo bar', createdOn: 12345},
+          baz: {name: 'Baz', createdOn: 12347},
         },
       });
     });
@@ -53,19 +53,19 @@ describe('The reducer module', () => {
     });
 
     it('will not make isSubscribedToValue return true if there was never a subscription', () => {
-      expect(isSubscribedToValue(state, '/foo/bar')).toBe(false);
-      expect(isSubscribedToValue(state, '/baz')).toBe(true);
+      expect(isSubscribedToValue(state, 'foo/bar')).toBe(false);
+      expect(isSubscribedToValue(state, 'baz')).toBe(true);
     });
 
     it('will make hasReceivedValue return true', () => {
-      expect(hasReceivedValue(state, '/foo/bar')).toBe(true);
-      expect(hasReceivedValue(state, '/baz')).toBe(true);
+      expect(hasReceivedValue(state, 'foo/bar')).toBe(true);
+      expect(hasReceivedValue(state, 'baz')).toBe(true);
     });
 
     it('will update the subscription with the last update time', () => {
       expect(state.get('subscriptions').toJS()).toEqual({
-        '/baz': {lastUpdateTime: 1451606400000, time: 1451606400000},
-        '/foo/bar': {lastUpdateTime: 1451606400000},
+        baz: {lastUpdateTime: 1451606400000, time: 1451606400000},
+        'foo/bar': {lastUpdateTime: 1451606400000},
       });
     });
 
@@ -73,13 +73,13 @@ describe('The reducer module', () => {
       beforeEach(() => {
         state = reduce(state, {
           type: SUBSCRIBE_TO_VALUES,
-          paths: ['/foo/bar'],
+          paths: ['foo/bar'],
         });
       });
       it('will update the suscription with the time the subscription was made', () => {
         expect(state.get('subscriptions').toJS()).toEqual({
-          '/baz': {lastUpdateTime: 1451606400000, time: 1451606400000},
-          '/foo/bar': {lastUpdateTime: 1451606400000, time: 1451606400000},
+          baz: {lastUpdateTime: 1451606400000, time: 1451606400000},
+          'foo/bar': {lastUpdateTime: 1451606400000, time: 1451606400000},
         });
       });
     });
@@ -89,17 +89,17 @@ describe('The reducer module', () => {
     beforeEach(() => {
       state = reduce(state, {
         type: SUBSCRIBE_TO_VALUES,
-        paths: ['/foo/bar', '/items/1'],
+        paths: ['foo/bar', 'items/1'],
       });
     });
 
     it('will update the subscription state with each of the paths', () => {
       expect(state.toJS()).toEqual({
         subscriptions: {
-          '/foo/bar': {
+          'foo/bar': {
             time: 1451606400000,
           },
-          '/items/1': {
+          'items/1': {
             time: 1451606400000,
           },
         },
@@ -108,7 +108,7 @@ describe('The reducer module', () => {
     });
 
     it('will make hasReceivedValue return false', () => {
-      expect(hasReceivedValue(state, '/foo/bar')).toBe(false);
+      expect(hasReceivedValue(state, 'foo/bar')).toBe(false);
     });
 
     describe('when subsequently given a RECEIVE_SNAPSHOTS', () => {
@@ -117,7 +117,7 @@ describe('The reducer module', () => {
         state = reduce(state, {
           type: RECEIVE_SNAPSHOTS,
           values: {
-            '/foo/bar': {
+            'foo/bar': {
               name: 'Foo Bar',
               createdOn: 12345,
             },
@@ -137,16 +137,16 @@ describe('The reducer module', () => {
       });
 
       it('will make hasReceivedValue return false', () => {
-        expect(hasReceivedValue(state, '/foo/bar')).toBe(true);
+        expect(hasReceivedValue(state, 'foo/bar')).toBe(true);
       });
 
       it('will update the subscription with the last update time', () => {
         expect(state.get('subscriptions').toJS()).toEqual({
-          '/foo/bar': {
+          'foo/bar': {
             lastUpdateTime: 1451606401000,
             time: 1451606400000,
           },
-          '/items/1': {
+          'items/1': {
             time: 1451606400000,
           },
         });

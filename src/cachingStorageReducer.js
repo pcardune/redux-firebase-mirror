@@ -28,19 +28,14 @@ export default (config: ?{storagePrefix?: ?string, storage?: ?Storage}) =>
       config = config || {};
       const storagePrefix = config.storagePrefix || DEFAULT_CACHE_PREFIX;
       const storage = config.storage || localStorage;
-      switch (action.type) {
-        case RECEIVE_SNAPSHOTS:
-          if (!action.fromCache) {
-            Object.keys(action.values).forEach(path => {
-              storage.setItem(
-                storagePrefix + normalizePath(path),
-                JSON.stringify(action.values[path])
-              );
-            });
-          }
-          return state;
-        default:
-          return state;
+      if (action.type === RECEIVE_SNAPSHOTS && !action.fromCache) {
+        Object.keys(action.values).forEach(path => {
+          storage.setItem(
+            storagePrefix + normalizePath(path),
+            JSON.stringify(action.values[path])
+          );
+        });
       }
+      return state;
     },
   });

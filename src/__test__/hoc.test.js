@@ -66,13 +66,13 @@ describe('the hoc.js module', () => {
     });
 
     it('dispatches a SUBSCRIBE_TO_VALUES action when the component mounts', () => {
-      mapStateToPaths.mockReturnValue(['/foo', '/bar']);
+      mapStateToPaths.mockReturnValue(['foo', 'bar']);
       expect(dispatchedActions).toEqual([]);
       render(<SmartComponent />);
       expect(dispatchedActions).toEqual([
         {
           type: SUBSCRIBE_TO_VALUES,
-          paths: ['/foo', '/bar'],
+          paths: ['foo', 'bar'],
         },
       ]);
     });
@@ -84,7 +84,7 @@ describe('the hoc.js module', () => {
     });
 
     it('throws a helpful error message if the function does not return an array of paths', () => {
-      mapStateToPaths.mockReturnValue('/foo');
+      mapStateToPaths.mockReturnValue('foo');
       expect(() => render(<SmartComponent foo="1" bar="2" />)).toThrowError(
         'The function given to subscribePaths() must return an array of strings'
       );
@@ -126,13 +126,13 @@ describe('the hoc.js module', () => {
 
     it('will subscribe to all the paths of the various subscriptions', () => {
       mapPropsToSubscriptions.mockReturnValue({foo: fooById});
-      fooById.paths.mockReturnValue(['/foo', '/bar']);
+      fooById.paths.mockReturnValue(['foo', 'bar']);
       expect(dispatchedActions).toEqual([]);
       render(<SmartComponent />);
       expect(dispatchedActions).toEqual([
         {
           type: SUBSCRIBE_TO_VALUES,
-          paths: ['/foo', '/bar'],
+          paths: ['foo', 'bar'],
         },
       ]);
     });

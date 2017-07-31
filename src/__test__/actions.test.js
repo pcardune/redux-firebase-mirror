@@ -84,7 +84,7 @@ describe('The actions module', () => {
     describe('The loadValuesFromCache() action creator', () => {
       describe('when given a falsy config', () => {
         it('is a no-op', () => {
-          store.dispatch(loadValuesFromCache(['/foo']));
+          store.dispatch(loadValuesFromCache(['foo']));
           expect(dispatchedActions).toEqual([]);
         });
       });
@@ -109,7 +109,7 @@ describe('The actions module', () => {
 
         it('will ignore null cache values', () => {
           store.dispatch(
-            loadValuesFromCache(['/null'], {
+            loadValuesFromCache(['null'], {
               storage,
             })
           );
@@ -119,7 +119,7 @@ describe('The actions module', () => {
 
         it('will ignore bad json cache values', () => {
           store.dispatch(
-            loadValuesFromCache(['/bad-json'], {
+            loadValuesFromCache(['bad-json'], {
               storage,
             })
           );
@@ -131,7 +131,7 @@ describe('The actions module', () => {
 
         it('will load values from a cache', () => {
           store.dispatch(
-            loadValuesFromCache(['/foo', '/bar'], {
+            loadValuesFromCache(['foo', 'bar'], {
               storage,
             })
           );
@@ -141,8 +141,8 @@ describe('The actions module', () => {
             {
               type: 'FIREBASE/RECEIVE_SNAPSHOTS',
               values: {
-                '/foo': 'value for firebase-mirror:foo',
-                '/bar': 'value for firebase-mirror:bar',
+                foo: 'value for firebase-mirror:foo',
+                bar: 'value for firebase-mirror:bar',
               },
               fromCache: true,
             },
@@ -193,9 +193,9 @@ describe('The actions module', () => {
               {
                 type: 'FIREBASE/RECEIVE_SNAPSHOTS',
                 values: {
-                  '/path-0': 'value for firebase-mirror:path-0',
-                  '/path-1': 'value for firebase-mirror:path-1',
-                  '/path-2': 'value for firebase-mirror:path-2',
+                  'path-0': 'value for firebase-mirror:path-0',
+                  'path-1': 'value for firebase-mirror:path-1',
+                  'path-2': 'value for firebase-mirror:path-2',
                 },
                 fromCache: true,
               },
@@ -210,17 +210,17 @@ describe('The actions module', () => {
               {
                 type: 'FIREBASE/RECEIVE_SNAPSHOTS',
                 values: {
-                  '/path-0': 'value for firebase-mirror:path-0',
-                  '/path-1': 'value for firebase-mirror:path-1',
-                  '/path-2': 'value for firebase-mirror:path-2',
+                  'path-0': 'value for firebase-mirror:path-0',
+                  'path-1': 'value for firebase-mirror:path-1',
+                  'path-2': 'value for firebase-mirror:path-2',
                 },
                 fromCache: true,
               },
               {
                 type: 'FIREBASE/RECEIVE_SNAPSHOTS',
                 values: {
-                  '/path-3': 'value for firebase-mirror:path-3',
-                  '/path-4': 'value for firebase-mirror:path-4',
+                  'path-3': 'value for firebase-mirror:path-3',
+                  'path-4': 'value for firebase-mirror:path-4',
                 },
                 fromCache: true,
               },
@@ -244,7 +244,7 @@ describe('The actions module', () => {
           it('will load values from a cache asynchronously', async () => {
             await Promise.all(
               store.dispatch(
-                loadValuesFromCache(['/foo', '/bar'], {storage: fastStorage})
+                loadValuesFromCache(['foo', 'bar'], {storage: fastStorage})
               )
             );
             expect(fastStorage.getItem).toHaveBeenCalledWith(
@@ -257,8 +257,8 @@ describe('The actions module', () => {
               {
                 type: 'FIREBASE/RECEIVE_SNAPSHOTS',
                 values: {
-                  '/foo': 'value for firebase-mirror:foo',
-                  '/bar': 'value for firebase-mirror:bar',
+                  foo: 'value for firebase-mirror:foo',
+                  bar: 'value for firebase-mirror:bar',
                 },
                 fromCache: true,
               },
@@ -274,45 +274,43 @@ describe('The actions module', () => {
           store.dispatch(
             subscribeToValues([
               {
-                path: '/baz',
+                path: 'baz',
                 orderByKey: true,
               },
             ])
           );
-          expect(refs['/baz'].orderByKey).toHaveBeenCalled();
+          expect(refs['baz'].orderByKey).toHaveBeenCalled();
         });
 
         it('will handle the orderByValue config', () => {
           store.dispatch(
             subscribeToValues([
               {
-                path: '/baz',
+                path: 'baz',
                 orderByValue: true,
               },
             ])
           );
-          expect(refs['/baz'].orderByValue).toHaveBeenCalled();
+          expect(refs['baz'].orderByValue).toHaveBeenCalled();
         });
 
         it('will handle the orderByChild config', () => {
           store.dispatch(
             subscribeToValues([
               {
-                path: '/baz',
+                path: 'baz',
                 orderByChild: 'someChildKey',
               },
             ])
           );
-          expect(refs['/baz'].orderByChild).toHaveBeenCalledWith(
-            'someChildKey'
-          );
+          expect(refs['baz'].orderByChild).toHaveBeenCalledWith('someChildKey');
         });
 
         it('will call all the appropriate filter functions', () => {
           store.dispatch(
             subscribeToValues([
               {
-                path: '/baz',
+                path: 'baz',
                 filter: {
                   limitToLast: 10,
                   limitToFirst: 15,
@@ -323,11 +321,11 @@ describe('The actions module', () => {
               },
             ])
           );
-          expect(refs['/baz'].limitToLast).toHaveBeenCalledWith(10);
-          expect(refs['/baz'].limitToFirst).toHaveBeenCalledWith(15);
-          expect(refs['/baz'].startAt).toHaveBeenCalledWith(50);
-          expect(refs['/baz'].endAt).toHaveBeenCalledWith(100);
-          expect(refs['/baz'].equalTo).toHaveBeenCalledWith('foo');
+          expect(refs['baz'].limitToLast).toHaveBeenCalledWith(10);
+          expect(refs['baz'].limitToFirst).toHaveBeenCalledWith(15);
+          expect(refs['baz'].startAt).toHaveBeenCalledWith(50);
+          expect(refs['baz'].endAt).toHaveBeenCalledWith(100);
+          expect(refs['baz'].equalTo).toHaveBeenCalledWith('foo');
         });
       });
 
@@ -335,10 +333,10 @@ describe('The actions module', () => {
         beforeEach(() => {
           store.dispatch(
             subscribeToValues([
-              '/foo',
-              '/bar',
+              'foo',
+              'bar',
               {
-                path: '/baz',
+                path: 'baz',
                 filter: {limitToLast: 1, startAt: 10},
                 orderByKey: true,
               },
@@ -348,45 +346,45 @@ describe('The actions module', () => {
 
         it('will subscribe to the firebase ref at the given paths', () => {
           expect(Object.keys(refs).length).toBe(3);
-          expect(firebase.database().ref).toHaveBeenCalledWith('/foo');
-          expect(firebase.database().ref).toHaveBeenCalledWith('/bar');
-          expect(firebase.database().ref).toHaveBeenCalledWith('/baz');
-          expect(refs['/foo'].on).toHaveBeenCalledWith(
+          expect(firebase.database().ref).toHaveBeenCalledWith('foo');
+          expect(firebase.database().ref).toHaveBeenCalledWith('bar');
+          expect(firebase.database().ref).toHaveBeenCalledWith('baz');
+          expect(refs['foo'].on).toHaveBeenCalledWith(
             'value',
             jasmine.any(Function)
           );
-          expect(refs['/bar'].on).toHaveBeenCalledWith(
+          expect(refs['bar'].on).toHaveBeenCalledWith(
             'value',
             jasmine.any(Function)
           );
         });
 
         it('will apply the appropriate filters specified in a path config object', () => {
-          expect(refs['/baz'].limitToLast).toHaveBeenCalledWith(1);
-          expect(refs['/baz'].startAt).toHaveBeenCalledWith(10);
-          expect(refs['/baz'].orderByKey).toHaveBeenCalled();
+          expect(refs['baz'].limitToLast).toHaveBeenCalledWith(1);
+          expect(refs['baz'].startAt).toHaveBeenCalledWith(10);
+          expect(refs['baz'].orderByKey).toHaveBeenCalled();
         });
 
         it('will dispatch some redux actions', () => {
           expect(dispatchedActions).toEqual([
             {
               type: 'FIREBASE/SUBSCRIBE_TO_VALUES',
-              paths: ['/foo', '/bar', '/baz'],
+              paths: ['foo', 'bar', 'baz'],
             },
           ]);
         });
 
         describe('when a subsequent subscribeToValues action creator is dispatched', () => {
           beforeEach(() => {
-            store.dispatch(subscribeToValues(['/bar', '/zap']));
+            store.dispatch(subscribeToValues(['bar', 'zap']));
           });
 
           it('will only subscribe to firebase refs that have not already been subscribed to', () => {
             expect(Object.keys(refs).length).toBe(4);
-            expect(firebase.database().ref).toHaveBeenCalledWith('/zap');
-            expect(refs['/foo'].on).toHaveBeenCalledTimes(1);
-            expect(refs['/bar'].on).toHaveBeenCalledTimes(1);
-            expect(refs['/zap'].on).toHaveBeenCalledWith(
+            expect(firebase.database().ref).toHaveBeenCalledWith('zap');
+            expect(refs['foo'].on).toHaveBeenCalledTimes(1);
+            expect(refs['bar'].on).toHaveBeenCalledTimes(1);
+            expect(refs['zap'].on).toHaveBeenCalledWith(
               'value',
               jasmine.any(Function)
             );
@@ -396,14 +394,14 @@ describe('The actions module', () => {
             expect(dispatchedActions.length).toBe(2);
             expect(dispatchedActions[1]).toEqual({
               type: 'FIREBASE/SUBSCRIBE_TO_VALUES',
-              paths: ['/zap'],
+              paths: ['zap'],
             });
           });
         });
 
         describe('when a subsequent subscribeToValues action creator is dispatched where all paths were already subscribed to', () => {
           beforeEach(() => {
-            store.dispatch(subscribeToValues(['/bar', '/foo']));
+            store.dispatch(subscribeToValues(['bar', 'foo']));
           });
 
           it('will not dispatch any actions', () => {
@@ -413,8 +411,8 @@ describe('The actions module', () => {
 
         describe('when the firebase value event is triggered', () => {
           beforeEach(() => {
-            refs['/foo'].on.mock.calls[0][1](
-              mockSnapshot('/foo&bar', 'foo-value')
+            refs['foo'].on.mock.calls[0][1](
+              mockSnapshot('foo&bar', 'foo-value')
             );
           });
 
@@ -427,8 +425,8 @@ describe('The actions module', () => {
           });
 
           it('will wait to dispatch more FIREBASE/RECEIVE_SNAPSHOTS until CONFIG.syncInterval has ellapsed', () => {
-            refs['/baz'].on.mock.calls[0][1](mockSnapshot('/baz', 'baz-value'));
-            refs['/bar'].on.mock.calls[0][1](mockSnapshot('/bar', 'bar-value'));
+            refs['baz'].on.mock.calls[0][1](mockSnapshot('baz', 'baz-value'));
+            refs['bar'].on.mock.calls[0][1](mockSnapshot('bar', 'bar-value'));
             expect(dispatchedActions.length).toBe(2);
             expect(dispatchedActions[1]).toEqual({
               type: 'FIREBASE/RECEIVE_SNAPSHOTS',
@@ -463,7 +461,7 @@ describe('The actions module', () => {
     describe('The unsubscribeFromValues() action creator', () => {
       describe('when unsubscribing from paths that are not currently subscribed to', () => {
         beforeEach(() => {
-          store.dispatch(unsubscribeFromValues(['/not-current-subscribed']));
+          store.dispatch(unsubscribeFromValues(['not-current-subscribed']));
         });
 
         it('will not dispatch any actions', () => {
@@ -473,22 +471,22 @@ describe('The actions module', () => {
 
       describe('when unsubscribing from paths that are currently subscribed to', () => {
         beforeEach(() => {
-          store.dispatch(subscribeToValues(['/foo']));
+          store.dispatch(subscribeToValues(['foo']));
           dispatchedActions = [];
-          store.dispatch(unsubscribeFromValues(['/foo', '/bar']));
+          store.dispatch(unsubscribeFromValues(['foo', 'bar']));
         });
 
         it('will dispatch a FIREBASE/UNSUBSCRIBE_FROM_VALUES action', () => {
           expect(dispatchedActions).toEqual([
             {
               type: 'FIREBASE/UNSUBSCRIBE_FROM_VALUES',
-              paths: ['/foo'],
+              paths: ['foo'],
             },
           ]);
         });
 
         it('will call the off() method on the firebase ref', () => {
-          expect(refs['/foo'].off).toHaveBeenCalledWith('value');
+          expect(refs['foo'].off).toHaveBeenCalledWith('value');
         });
       });
     });
@@ -497,15 +495,15 @@ describe('The actions module', () => {
       let callback;
       beforeEach(() => {
         callback = jest.fn();
-        store.dispatch(fetchValues(['/foo', '/bar'], callback));
+        store.dispatch(fetchValues(['foo', 'bar'], callback));
       });
 
       it("will call the firebase ref's once('value') method for each path", () => {
-        expect(refs['/foo'].once).toHaveBeenCalledWith(
+        expect(refs['foo'].once).toHaveBeenCalledWith(
           'value',
           jasmine.any(Function)
         );
-        expect(refs['/bar'].once).toHaveBeenCalledWith(
+        expect(refs['bar'].once).toHaveBeenCalledWith(
           'value',
           jasmine.any(Function)
         );
@@ -513,7 +511,7 @@ describe('The actions module', () => {
 
       describe('when some of the data has been received', () => {
         beforeEach(() => {
-          refs['/foo'].once.mock.calls[0][1](mockSnapshot('/foo', 'foo-value'));
+          refs['foo'].once.mock.calls[0][1](mockSnapshot('foo', 'foo-value'));
         });
 
         it('will dispatch a receiveSnapshots action for each firebase value it receives', () => {
@@ -532,8 +530,8 @@ describe('The actions module', () => {
 
       describe('when all of the data has been received', () => {
         beforeEach(() => {
-          refs['/foo'].once.mock.calls[0][1](mockSnapshot('/foo', 'foo-value'));
-          refs['/bar'].once.mock.calls[0][1](mockSnapshot('/bar', 'bar-value'));
+          refs['foo'].once.mock.calls[0][1](mockSnapshot('foo', 'foo-value'));
+          refs['bar'].once.mock.calls[0][1](mockSnapshot('bar', 'bar-value'));
         });
 
         it('will call the callback function that was initially given', () => {

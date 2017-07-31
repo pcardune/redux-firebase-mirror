@@ -42,7 +42,11 @@ function receiveSnapshots(snapshots) {
   const values = {};
   snapshots.forEach(snapshot => {
     values[
-      decodeURIComponent(snapshot.ref.toString().split('/').slice(3).join('/'))
+      normalizePath(
+        decodeURIComponent(
+          snapshot.ref.toString().split('/').slice(3).join('/')
+        )
+      )
     ] = snapshot.val();
   });
   return {
@@ -73,8 +77,8 @@ export function subscribeToValues<S>(paths: PathSpec[]) {
     if (paths.length == 0) {
       return;
     }
-    const stringPaths = paths.map(
-      path => (typeof path === 'string' ? path : path.path)
+    const stringPaths = paths.map(path =>
+      normalizePath(typeof path === 'string' ? path : path.path)
     );
     if (CONFIG.persistToLocalStorage) {
       // TODO: we probably need to keep track of full path specs?
@@ -130,6 +134,7 @@ export function subscribeToValues<S>(paths: PathSpec[]) {
  * @param {PersistanceConfig} [config] - configuration for the cache
  */
 export function loadValuesFromCache(paths: string[], config) {
+  paths = paths.map(normalizePath);
   return dispatch => {
     if (config) {
       const storagePrefix = config.storagePrefix || DEFAULT_CACHE_PREFIX;

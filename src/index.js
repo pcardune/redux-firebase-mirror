@@ -13,7 +13,13 @@ import type {StorageAPI} from './types';
 import Subscription from './Subscription';
 import {subscribePaths, subscribeProps} from './hoc';
 import {DEFAULT_CONFIG, CONFIG} from './config';
-import {isSubscribedToValue, getFirebaseMirror} from './selectors';
+import {
+  isSubscribedToValue,
+  getFirebaseMirror,
+  hasReceivedValue,
+  isSubscribedToValueSelector,
+  hasReceivedValueSelector,
+} from './selectors';
 
 /**
  * @typedef {Object} ConfiguredModule
@@ -101,6 +107,9 @@ export {
   // selectors
   getFirebaseMirror,
   isSubscribedToValue,
+  isSubscribedToValueSelector,
+  hasReceivedValue,
+  hasReceivedValueSelector,
   // subscriptions
   Subscription,
   subscribeProps,
