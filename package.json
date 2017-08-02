@@ -11,7 +11,7 @@
   "license": "MIT",
   "scripts": {
     "test": "jest",
-    "prepublish": "npm run build",
+    "prepare": "npm run build",
     "lint": "eslint src/ examples/",
     "build": "rm -rf dist && babel --ignore '*.test.js' -d dist src/",
     "docs": "documentation build -f html -o docs src/**/*.js",
