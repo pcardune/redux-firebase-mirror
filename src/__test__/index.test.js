@@ -2,7 +2,7 @@
 import thunkMiddleware from 'redux-thunk';
 import {createStore, applyMiddleware, combineReducers} from 'redux';
 import * as Immutable from 'immutable';
-import firebase from 'firebase';
+import database from 'firebase/database';
 import reduxFirebaseMirror, {
   getKeysAtPath,
   getValueAtPath,
@@ -16,7 +16,7 @@ import * as actions from '../actions';
 import {RECEIVE_SNAPSHOTS, SUBSCRIBE_TO_VALUES} from '../constants';
 import {mockDate, restoreDate} from './mockDate';
 
-jest.mock('firebase');
+jest.mock('firebase/database');
 
 describe('The redux-firebase-mirror module', () => {
   beforeAll(() => mockDate(() => 1451606400000));
@@ -147,7 +147,7 @@ describe('The redux-firebase-mirror module', () => {
     let store, dispatchedActions, refs;
     beforeEach(() => {
       refs = {};
-      firebase.database.mockReturnValue({
+      database.mockReturnValue({
         ref: jest.fn(path => {
           refs[path] = {
             on: jest.fn(),

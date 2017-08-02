@@ -1,7 +1,7 @@
 //@flow
 import {createStore, applyMiddleware} from 'redux';
 import thunkMiddleware from 'redux-thunk';
-import firebase from 'firebase';
+import database from 'firebase/database';
 import type {Store} from 'redux';
 import * as Immutable from 'immutable';
 
@@ -16,7 +16,7 @@ import {
   _moduleState,
 } from '../actions';
 
-jest.mock('firebase');
+jest.mock('firebase/database');
 jest.useFakeTimers();
 
 function mockSnapshot(path, value) {
@@ -55,7 +55,7 @@ describe('The actions module', () => {
     let refs;
     beforeEach(() => {
       refs = {};
-      firebase.database.mockReturnValue({
+      database.mockReturnValue({
         ref: jest.fn(path => {
           refs[path] = {
             on: jest.fn(),
@@ -346,9 +346,9 @@ describe('The actions module', () => {
 
         it('will subscribe to the firebase ref at the given paths', () => {
           expect(Object.keys(refs).length).toBe(3);
-          expect(firebase.database().ref).toHaveBeenCalledWith('foo');
-          expect(firebase.database().ref).toHaveBeenCalledWith('bar');
-          expect(firebase.database().ref).toHaveBeenCalledWith('baz');
+          expect(database().ref).toHaveBeenCalledWith('foo');
+          expect(database().ref).toHaveBeenCalledWith('bar');
+          expect(database().ref).toHaveBeenCalledWith('baz');
           expect(refs['foo'].on).toHaveBeenCalledWith(
             'value',
             jasmine.any(Function)
@@ -381,7 +381,7 @@ describe('The actions module', () => {
 
           it('will only subscribe to firebase refs that have not already been subscribed to', () => {
             expect(Object.keys(refs).length).toBe(4);
-            expect(firebase.database().ref).toHaveBeenCalledWith('zap');
+            expect(database().ref).toHaveBeenCalledWith('zap');
             expect(refs['foo'].on).toHaveBeenCalledTimes(1);
             expect(refs['bar'].on).toHaveBeenCalledTimes(1);
             expect(refs['zap'].on).toHaveBeenCalledWith(
@@ -449,7 +449,7 @@ describe('The actions module', () => {
 
         it('will not subscribe to any firebase refs', () => {
           expect(Object.keys(refs).length).toBe(0);
-          expect(firebase.database().ref).not.toHaveBeenCalled();
+          expect(database().ref).not.toHaveBeenCalled();
         });
 
         it('will not dispatch any redux actions', () => {

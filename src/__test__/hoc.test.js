@@ -1,7 +1,7 @@
 //@flow
 import React, {Component} from 'react';
 import {mount} from 'enzyme';
-import firebase from 'firebase';
+import database from 'firebase/database';
 import thunkMiddleware from 'redux-thunk';
 import {createStore, applyMiddleware} from 'redux';
 import {Provider} from 'react-redux';
@@ -11,12 +11,12 @@ import {subscribePaths, subscribeProps} from '../hoc';
 import {SUBSCRIBE_TO_VALUES} from '../constants';
 import Subscription from '../Subscription';
 
-jest.mock('firebase');
+jest.mock('firebase/database');
 
 describe('the hoc.js module', () => {
   let store, dispatchedActions;
   beforeEach(() => {
-    firebase.database.mockReturnValue({
+    database.mockReturnValue({
       ref: jest.fn(path => {
         return {
           on: jest.fn(),
