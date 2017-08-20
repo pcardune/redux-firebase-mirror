@@ -5,7 +5,6 @@
 /* eslint-env browser */
 
 //@flow
-import database from 'firebase/database';
 
 import type {JSONType} from './types';
 import {isSubscribedToValue} from './selectors';
@@ -107,9 +106,9 @@ export function subscribeToValues<S>(paths: PathSpec[]) {
     paths.forEach(path => {
       let ref;
       if (typeof path === 'string') {
-        ref = database().ref(path);
+        ref = CONFIG.getFirebase().database().ref(path);
       } else {
-        ref = database().ref(path.path);
+        ref = CONFIG.getFirebase().database().ref(path.path);
         if (path.orderByKey) {
           ref = ref.orderByKey();
         } else if (path.orderByValue) {
@@ -216,7 +215,7 @@ export function fetchValues(paths: string[], callback: ?() => void) {
         }
       };
       paths.forEach(path =>
-        database().ref(path).once('value', dispatchSnapshot)
+        CONFIG.getFirebase().database().ref(path).once('value', dispatchSnapshot)
       );
     });
   };
@@ -234,7 +233,7 @@ export function unsubscribeFromValues(paths: string[]) {
     if (paths.length === 0) {
       return;
     }
-    paths.forEach(path => database().ref(path).off('value'));
+    paths.forEach(path => CONFIG.getFirebase().database().ref(path).off('value'));
     dispatch({type: UNSUBSCRIBE_FROM_VALUES, paths});
   };
 }

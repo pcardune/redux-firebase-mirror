@@ -45,7 +45,8 @@ export function subscribePaths<
             __state: RS,
           };
 
-        componentDidMount() {
+        constructor(props) {
+          super(props);
           this.props.__dispatch(subscribeToValues(getPaths(this.props)));
         }
 

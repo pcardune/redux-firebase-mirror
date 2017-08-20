@@ -50,7 +50,10 @@ import reduxFirebaseMirror from 'redux-firebase-mirror';
 import {combineReducers, createStore, applyMiddleware} from 'redux';
 import thunkMiddleware from 'redux-thunk';
 
-const firebaseMirror = reduxFirebaseMirror();
+const app = firebase.initializeApp({...});
+const firebaseMirror = reduxFirebaseMirror({
+  getFirebase: () => app
+});
 
 const store = createStore(
   combineReducers({
@@ -65,14 +68,15 @@ const store = createStore(
 
 ### Configuration
 
-#### reduxFirebaseMirror()
+#### reduxFirebaseMirror(config)
 
 This function is used to initialize and configure the `redux-firebase-mirror` module and get a reducer to
 incorporate in your applications exisiting redux store. It takes an optional `config` object for customizing behavior.
 
 Param         | Type | Description
 --------------|------|-----------------------------------------------
-`config`        | `Object` | Optional configuration object. See options below.
+`config`        | `Object` | configuration object. See options below.
+`config.getFirebase` | `Function` | function for getting the firebase App instance to use.
 `config.getFirebaseState` | `Function` | Optional selector function for getting the state used by `redux-firebase-mirror`. If not specified, will default to `(state) => state.firebaseMirror;`
 `config.persistToLocalStorage` | `Object` | A config object for persisting the mirror to local storage. If not provided, no data will be persisted. See below for the specific options
 `config.persistToLocalStorage.storage` | `localStorage\|sessionStorage` | Optionally specify a custom storage system. Defaults to using `localStorage`. Can be any object which implements the same API as `localStorage`. Also supports async storage apis such as react native's `AsyncStorage`.

@@ -51,6 +51,7 @@ import {
  */
 export default function configureReducer(
   config: ?{
+    getFirebase: () => any,
     getFirebaseState: (state: any) => Immutable.Map<string, *>,
     persistToLocalStorage?: ?{
       storagePrefix?: ?string,
@@ -64,6 +65,7 @@ export default function configureReducer(
   }
 ) {
   config = {...DEFAULT_CONFIG, ...config};
+  CONFIG.getFirebase = config.getFirebase;
   CONFIG.getFirebaseState = config.getFirebaseState;
   CONFIG.storageAPI = config.storageAPI;
   CONFIG.persistToLocalStorage = config.persistToLocalStorage;
