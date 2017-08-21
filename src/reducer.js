@@ -8,6 +8,7 @@ import {
   RECEIVE_SNAPSHOTS,
   UNSUBSCRIBE_FROM_VALUES,
   SUBSCRIBE_TO_VALUES,
+  REHYDRATE,
 } from './constants';
 
 export default <M, V>(storageAPI: StorageAPI<M, V>) =>
@@ -33,6 +34,8 @@ export default <M, V>(storageAPI: StorageAPI<M, V>) =>
           return state.withMutations(state => {
             action.paths.forEach(path => state.deleteIn(normalizePath(path)));
           });
+        case REHYDRATE:
+          return Immutable.fromJS(action.data.subscriptions);
         default:
           return state;
       }
@@ -45,6 +48,8 @@ export default <M, V>(storageAPI: StorageAPI<M, V>) =>
       switch (action.type) {
         case RECEIVE_SNAPSHOTS:
           return storageAPI.setValues(state, action.values);
+        case REHYDRATE:
+          return Immutable.fromJS(action.data.mirror);
         default:
           return state;
       }

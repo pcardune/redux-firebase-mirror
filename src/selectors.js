@@ -33,6 +33,17 @@ const subscriptionInformationSelector = createSelector(
     }, normalizePath)
 );
 
+export const getDehydratedState = createSelector(
+  [getFirebaseState],
+  firebaseState => ({
+    mirror: firebaseState.get('mirror').toJS(),
+    subscriptions: firebaseState
+      .get('subscriptions')
+      .map(subscription => subscription.delete('time'))
+      .toJS(),
+  })
+);
+
 export const hasReceivedValueSelector = createSelector(
   [subscriptionInformationSelector],
   getSubscriptionInformation =>

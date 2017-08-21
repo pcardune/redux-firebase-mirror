@@ -19,6 +19,7 @@ import {
   hasReceivedValue,
   isSubscribedToValueSelector,
   hasReceivedValueSelector,
+  getDehydratedState,
 } from './selectors';
 
 /**
@@ -104,6 +105,7 @@ export const SUBSCRIBE_TO_VALUES = actions.SUBSCRIBE_TO_VALUES;
 export const subscribeToValues = actions.subscribeToValues;
 export const fetchValues = actions.fetchValues;
 export const unsubscribeFromValues = actions.unsubscribeFromValues;
+export const rehydrate = actions.rehydrate;
 
 export {
   // selectors
@@ -112,6 +114,7 @@ export {
   isSubscribedToValueSelector,
   hasReceivedValue,
   hasReceivedValueSelector,
+  getDehydratedState,
   // subscriptions
   Subscription,
   subscribeProps,

@@ -15,6 +15,7 @@ import {
   UNSUBSCRIBE_FROM_VALUES,
   SUBSCRIBE_TO_VALUES,
   DEFAULT_CACHE_PREFIX,
+  REHYDRATE,
 } from './constants';
 
 export type FSA =
@@ -215,7 +216,10 @@ export function fetchValues(paths: string[], callback: ?() => void) {
         }
       };
       paths.forEach(path =>
-        CONFIG.getFirebase().database().ref(path).once('value', dispatchSnapshot)
+        CONFIG.getFirebase()
+          .database()
+          .ref(path)
+          .once('value', dispatchSnapshot)
       );
     });
   };
@@ -233,7 +237,17 @@ export function unsubscribeFromValues(paths: string[]) {
     if (paths.length === 0) {
       return;
     }
-    paths.forEach(path => CONFIG.getFirebase().database().ref(path).off('value'));
+    paths.forEach(path =>
+      CONFIG.getFirebase().database().ref(path).off('value')
+    );
     dispatch({type: UNSUBSCRIBE_FROM_VALUES, paths});
   };
+}
+
+/**
+ * Rehydrate the state of the firebase mirror with the given data.
+ * Note that this will not cause new subscritions to be created.
+ */
+export function rehydrate(data) {
+  return {type: REHYDRATE, data};
 }
