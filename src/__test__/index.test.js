@@ -2,7 +2,6 @@
 import thunkMiddleware from 'redux-thunk';
 import {createStore, applyMiddleware, combineReducers} from 'redux';
 import * as Immutable from 'immutable';
-import database from 'firebase/database';
 import reduxFirebaseMirror, {
   getKeysAtPath,
   getValueAtPath,
@@ -16,7 +15,8 @@ import * as actions from '../actions';
 import {RECEIVE_SNAPSHOTS, SUBSCRIBE_TO_VALUES} from '../constants';
 import {mockDate, restoreDate} from './mockDate';
 
-jest.mock('firebase/database');
+const database = jest.fn();
+const getFirebase = () => ({database});
 
 describe('The redux-firebase-mirror module', () => {
   beforeAll(() => mockDate(() => 1451606400000));
@@ -29,10 +29,11 @@ describe('The redux-firebase-mirror module', () => {
   });
 
   describe('The selector functions', () => {
-    let store;
+    let store, database;
     beforeEach(() => {
       store = createStore(
         reduxFirebaseMirror({
+          getFirebase,
           getFirebaseState: state => state,
         }),
         Immutable.Map(),
@@ -94,7 +95,7 @@ describe('The redux-firebase-mirror module', () => {
 
   describe('the getFirebaseMirror function', () => {
     describe('when no configuration is passed to the module', () => {
-      beforeEach(() => reduxFirebaseMirror());
+      beforeEach(() => reduxFirebaseMirror({getFirebase}));
       it('will throw an error if no state is available at the firebaseMirror key', () => {
         expect(() => getFirebaseMirror({})).toThrowError(
           "redux-firebase-mirror's reducer must be mounted with combineReducers() under the 'firebaseMirror' key"
@@ -118,6 +119,7 @@ describe('The redux-firebase-mirror module', () => {
         };
         store = createStore(
           reduxFirebaseMirror({
+            getFirebase,
             persistToLocalStorage: {
               storage,
             },
@@ -163,7 +165,7 @@ describe('The redux-firebase-mirror module', () => {
       beforeEach(() => {
         dispatchedActions = [];
         store = createStore(
-          combineReducers({firebaseMirror: reduxFirebaseMirror()}),
+          combineReducers({firebaseMirror: reduxFirebaseMirror({getFirebase})}),
           applyMiddleware(thunkMiddleware, () => next => (action: any) => {
             dispatchedActions.push(action);
             return next(action);
@@ -183,6 +185,7 @@ describe('The redux-firebase-mirror module', () => {
         store = createStore(
           combineReducers({
             firebaseMirror: reduxFirebaseMirror({
+              getFirebase,
               persistToLocalStorage: {
                 storage: {
                   getItem: path => JSON.stringify('value of ' + path),

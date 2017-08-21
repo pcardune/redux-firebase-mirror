@@ -1,7 +1,6 @@
 //@flow
 import {createStore, applyMiddleware} from 'redux';
 import thunkMiddleware from 'redux-thunk';
-import database from 'firebase/database';
 import type {Store} from 'redux';
 import * as Immutable from 'immutable';
 
@@ -16,7 +15,6 @@ import {
   _moduleState,
 } from '../actions';
 
-jest.mock('firebase/database');
 jest.useFakeTimers();
 
 function mockSnapshot(path, value) {
@@ -29,8 +27,9 @@ function mockSnapshot(path, value) {
 }
 
 describe('The actions module', () => {
-  let store: Store<*, Action>, dispatchedActions;
+  let refs, database, store: Store<*, Action>, dispatchedActions;
   beforeEach(() => {
+    refs = {};
     dispatchedActions = [];
     const middlewares = [
       thunkMiddleware,
@@ -40,7 +39,32 @@ describe('The actions module', () => {
       },
     ];
 
+    const fakeDatabase = {
+      ref: jest.fn(path => {
+        refs[path] = {
+          on: jest.fn(),
+          off: jest.fn(),
+          once: jest.fn(),
+          orderByChild: jest.fn().mockReturnThis(),
+          orderByKey: jest.fn().mockReturnThis(),
+          orderByValue: jest.fn().mockReturnThis(),
+          endAt: jest.fn().mockReturnThis(),
+          startAt: jest.fn().mockReturnThis(),
+          limitToFirst: jest.fn().mockReturnThis(),
+          limitToLast: jest.fn().mockReturnThis(),
+          equalTo: jest.fn().mockReturnThis(),
+          path,
+        };
+        return refs[path];
+      }),
+    };
+
+    database = () => fakeDatabase;
+
     const reducer = reduxFirebaseMirror({
+      getFirebase: () => ({
+        database,
+      }),
       getFirebaseState: state => state,
     });
 
@@ -52,29 +76,6 @@ describe('The actions module', () => {
   });
 
   describe('After the module has been configured', () => {
-    let refs;
-    beforeEach(() => {
-      refs = {};
-      database.mockReturnValue({
-        ref: jest.fn(path => {
-          refs[path] = {
-            on: jest.fn(),
-            off: jest.fn(),
-            once: jest.fn(),
-            orderByChild: jest.fn().mockReturnThis(),
-            orderByKey: jest.fn().mockReturnThis(),
-            orderByValue: jest.fn().mockReturnThis(),
-            endAt: jest.fn().mockReturnThis(),
-            startAt: jest.fn().mockReturnThis(),
-            limitToFirst: jest.fn().mockReturnThis(),
-            limitToLast: jest.fn().mockReturnThis(),
-            equalTo: jest.fn().mockReturnThis(),
-            path,
-          };
-          return refs[path];
-        }),
-      });
-    });
     afterEach(() => {
       clearTimeout(_moduleState.dispatchTimeout);
       _moduleState.dispatchTimeout = null;

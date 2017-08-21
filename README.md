@@ -385,3 +385,29 @@ const FriendCollageContainer = subscribeProps({
   imgUrls: friendProfilePics,
 })(ImageCollage);
 ```
+
+### Rehydration from stored state
+
+If you are using `redux-firebase-mirror` in an isomorphic react application with
+subscriptions occuring on both the client and the server, then you will probably
+want to populate the client state with data already fetched by the server. You
+can do this using the following selector and action:
+
+#### getDehydratedState(state)
+
+Returns a serializable version of the mirrored state used by
+`redux-firebase-mirror`.
+
+Param | Type | Description
+------|------|------------
+`state` | Redux State | The redux store's state, i.e. `store.getState()`
+
+#### rehydrate(data)
+
+This action creator will update the store with the rehydrated data.
+
+Param | Type | Description
+------|------|------------
+`data` | Object | The data with which to rehydrate the state. i.e. the result of `getDehydratedState`
+
+See more information about state rehydration in redux in the [redux documetation](http://redux.js.org/docs/recipes/ServerRendering.html).
