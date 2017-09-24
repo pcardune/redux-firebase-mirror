@@ -33,39 +33,68 @@ describe('The reducer module', () => {
   describe('when given a RECEIVE_SNAPSHOTS action', () => {
     beforeEach(() => {
       state = state.setIn(
-        ['subscriptions', 'baz', 'time'],
+        ['subscriptions', 'baz|3|||10||true||', 'time'],
         new Date().getTime()
       );
       state = reduce(state, {
         type: RECEIVE_SNAPSHOTS,
         values: {
-          'foo/bar': {name: 'Foo bar', createdOn: 12345},
-          baz: {name: 'Baz', createdOn: 12347},
+          'foo/bar': {
+            pathSpec: 'foo/bar',
+            value: {name: 'Foo bar', createdOn: 12345},
+          },
+          'baz/child-5': {
+            pathSpec: 'baz/child5',
+            value: 'baz-5',
+          },
+          'baz|3|||10||true||': {
+            pathSpec: {
+              filter: {limitToLast: 3, startAt: 10},
+              orderByKey: true,
+              path: 'baz',
+            },
+            value: {child1: 'baz-1', child2: 'baz-2', child3: 'baz-3'},
+          },
         },
       });
     });
 
     it('will store the data in the mirror', () => {
       expect(state.get('mirror').toJS()).toEqual({
-        baz: {createdOn: 12347, name: 'Baz'},
+        baz: {
+          child1: 'baz-1',
+          child2: 'baz-2',
+          child3: 'baz-3',
+          child5: 'baz-5',
+        },
         foo: {bar: {createdOn: 12345, name: 'Foo bar'}},
       });
     });
 
     it('will not make isSubscribedToValue return true if there was never a subscription', () => {
       expect(isSubscribedToValue(state, 'foo/bar')).toBe(false);
-      expect(isSubscribedToValue(state, 'baz')).toBe(true);
+      expect(isSubscribedToValue(state, 'baz|3|||10||true||')).toBe(true);
     });
 
     it('will make hasReceivedValue return true', () => {
       expect(hasReceivedValue(state, 'foo/bar')).toBe(true);
-      expect(hasReceivedValue(state, 'baz')).toBe(true);
+      expect(
+        hasReceivedValue(state, {
+          filter: {limitToLast: 3, startAt: 10},
+          orderByKey: true,
+          path: 'baz',
+        })
+      ).toBe(true);
     });
 
     it('will update the subscription with the last update time', () => {
       expect(state.get('subscriptions').toJS()).toEqual({
-        baz: {lastUpdateTime: 1451606400000, time: 1451606400000},
+        'baz/child5': {lastUpdateTime: 1451606400000},
         'foo/bar': {lastUpdateTime: 1451606400000},
+        'baz|3|||10||true||': {
+          lastUpdateTime: 1451606400000,
+          time: 1451606400000,
+        },
       });
     });
 
@@ -76,9 +105,13 @@ describe('The reducer module', () => {
           paths: ['foo/bar'],
         });
       });
-      it('will update the suscription with the time the subscription was made', () => {
+      it('will update the subscription with the time the subscription was made', () => {
         expect(state.get('subscriptions').toJS()).toEqual({
-          baz: {lastUpdateTime: 1451606400000, time: 1451606400000},
+          'baz/child5': {lastUpdateTime: 1451606400000},
+          'baz|3|||10||true||': {
+            lastUpdateTime: 1451606400000,
+            time: 1451606400000,
+          },
           'foo/bar': {lastUpdateTime: 1451606400000, time: 1451606400000},
         });
       });
@@ -118,8 +151,11 @@ describe('The reducer module', () => {
           type: RECEIVE_SNAPSHOTS,
           values: {
             'foo/bar': {
-              name: 'Foo Bar',
-              createdOn: 12345,
+              pathSpec: 'foo/bar',
+              value: {
+                name: 'Foo Bar',
+                createdOn: 12345,
+              },
             },
           },
         });

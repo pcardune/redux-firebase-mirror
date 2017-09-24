@@ -3,7 +3,7 @@
 import {combineReducers} from 'redux-immutable';
 import * as Immutable from 'immutable';
 import {RECEIVE_SNAPSHOTS, DEFAULT_CACHE_PREFIX} from './constants';
-import {normalizePath} from './util';
+import {normalizePath, getPathSpecKey} from './util';
 
 interface Storage {
   setItem(key: string, value: string): any,
@@ -31,8 +31,8 @@ export default (config: ?{storagePrefix?: ?string, storage?: ?Storage}) =>
       if (action.type === RECEIVE_SNAPSHOTS && !action.fromCache) {
         Object.keys(action.values).forEach(path => {
           storage.setItem(
-            storagePrefix + normalizePath(path),
-            JSON.stringify(action.values[path])
+            storagePrefix + getPathSpecKey(path),
+            JSON.stringify(action.values[getPathSpecKey(path)].value)
           );
         });
       }

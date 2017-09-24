@@ -9,7 +9,7 @@
 import type {JSONType} from './types';
 import {isSubscribedToValue} from './selectors';
 import {CONFIG} from './config';
-import {normalizePath} from './util';
+import {normalizePath, getPathSpecKey} from './util';
 import {
   RECEIVE_SNAPSHOTS,
   UNSUBSCRIBE_FROM_VALUES,
@@ -38,16 +38,13 @@ export type PathConfig = {
 };
 export type PathSpec = string | PathConfig;
 
-function receiveSnapshots(snapshots) {
+export function receiveSnapshots(snapshots) {
   const values = {};
-  snapshots.forEach(snapshot => {
-    values[
-      normalizePath(
-        decodeURIComponent(
-          snapshot.ref.toString().split('/').slice(3).join('/')
-        )
-      )
-    ] = snapshot.val();
+  snapshots.forEach(({pathSpec, snapshot}) => {
+    values[getPathSpecKey(pathSpec)] = {
+      pathSpec,
+      value: snapshot.val(),
+    };
   });
   return {
     type: RECEIVE_SNAPSHOTS,
@@ -66,34 +63,22 @@ export const _moduleState = {
  */
 export function subscribeToValues<S>(paths: PathSpec[]) {
   return (dispatch: Dispatch, getState: () => S) => {
-    paths = paths.filter(
-      path =>
-        !isSubscribedToValue(
-          getState(),
-          // TODO: isSubscribedToValue should probably handle PathSpec objects
-          typeof path === 'string' ? path : path.path
-        )
-    );
+    paths = paths.filter(path => !isSubscribedToValue(getState(), path));
     if (paths.length == 0) {
       return;
     }
-    const stringPaths = paths.map(path =>
-      normalizePath(typeof path === 'string' ? path : path.path)
-    );
     if (CONFIG.persistToLocalStorage) {
-      // TODO: we probably need to keep track of full path specs?
-      dispatch(loadValuesFromCache(stringPaths, CONFIG.persistToLocalStorage));
+      dispatch(loadValuesFromCache(paths, CONFIG.persistToLocalStorage));
     }
     dispatch({
       type: SUBSCRIBE_TO_VALUES,
-      // TODO: we probably need to keep track of full path specs
-      paths: stringPaths,
+      paths,
     });
-    const dispatchSnapshot = snapshot => {
+    const dispatchSnapshot = pathSpec => snapshot => {
       if (_moduleState.dispatchTimeout) {
-        _moduleState.receiveQueue.push(snapshot);
+        _moduleState.receiveQueue.push({pathSpec, snapshot});
       } else {
-        dispatch(receiveSnapshots([snapshot]));
+        dispatch(receiveSnapshots([{pathSpec, snapshot}]));
         _moduleState.dispatchTimeout = setTimeout(() => {
           _moduleState.dispatchTimeout = null;
           const snapshots = _moduleState.receiveQueue;
@@ -104,37 +89,36 @@ export function subscribeToValues<S>(paths: PathSpec[]) {
         }, CONFIG.syncInterval);
       }
     };
-    paths.forEach(path => {
+    paths.forEach(pathSpec => {
       let ref;
-      if (typeof path === 'string') {
-        ref = CONFIG.getFirebase().database().ref(path);
+      if (typeof pathSpec === 'string') {
+        ref = CONFIG.getFirebase().database().ref(pathSpec);
       } else {
-        ref = CONFIG.getFirebase().database().ref(path.path);
-        if (path.orderByKey) {
+        ref = CONFIG.getFirebase().database().ref(pathSpec.path);
+        if (pathSpec.orderByKey) {
           ref = ref.orderByKey();
-        } else if (path.orderByValue) {
+        } else if (pathSpec.orderByValue) {
           ref = ref.orderByValue();
-        } else if (path.orderByChild) {
-          ref = ref.orderByChild(path.orderByChild);
+        } else if (pathSpec.orderByChild) {
+          ref = ref.orderByChild(pathSpec.orderByChild);
         }
-        if (path.filter) {
-          Object.keys(path.filter).forEach(key => {
-            ref = ref[key](path.filter[key]);
+        if (pathSpec.filter) {
+          Object.keys(pathSpec.filter).forEach(key => {
+            ref = ref[key](pathSpec.filter[key]);
           });
         }
       }
-      ref.on('value', dispatchSnapshot);
+      ref.on('value', dispatchSnapshot(pathSpec));
     });
   };
 }
 
 /**
  * Load values from cache, possibly asynchronously.
- * @param {string[]} paths - the list of paths to load from cache
+ * @param {PathSpec[]} pathSpecs - the list of pathSpecs to load from cache
  * @param {PersistanceConfig} [config] - configuration for the cache
  */
-export function loadValuesFromCache(paths: string[], config) {
-  paths = paths.map(normalizePath);
+export function loadValuesFromCache(pathSpecs: PathSpec[], config) {
   return dispatch => {
     if (config) {
       const storagePrefix = config.storagePrefix || DEFAULT_CACHE_PREFIX;
@@ -153,10 +137,9 @@ export function loadValuesFromCache(paths: string[], config) {
         });
       };
 
-      return paths.map(path => {
-        let valueOrPromise = storage.getItem(
-          storagePrefix + normalizePath(path)
-        );
+      return pathSpecs.map(pathSpec => {
+        const pathSpecKey = getPathSpecKey(pathSpec);
+        let valueOrPromise = storage.getItem(storagePrefix + pathSpecKey);
         const receiveFromCache = cached => {
           numReceived++;
           if (!cached) {
@@ -168,8 +151,11 @@ export function loadValuesFromCache(paths: string[], config) {
             // failed to parse json, just skip this.
             return;
           }
-          valuesToDispatch[path] = cached;
-          if (numReceived === paths.length) {
+          valuesToDispatch[pathSpecKey] = {
+            pathSpec: pathSpec,
+            value: cached,
+          };
+          if (numReceived === pathSpecs.length) {
             // once we have received everything from cache, dispatch the results
             clearTimeout(timeout);
             dispatch({
@@ -207,8 +193,8 @@ export function fetchValues(paths: string[], callback: ?() => void) {
   return (dispatch: Dispatch) => {
     let numLeft = paths.length;
     return new Promise(resolve => {
-      const dispatchSnapshot = snapshot => {
-        dispatch(receiveSnapshots([snapshot]));
+      const dispatchSnapshot = pathSpec => snapshot => {
+        dispatch(receiveSnapshots([{pathSpec, snapshot}]));
         numLeft--;
         if (numLeft === 0) {
           callback && callback();
@@ -219,7 +205,7 @@ export function fetchValues(paths: string[], callback: ?() => void) {
         CONFIG.getFirebase()
           .database()
           .ref(path)
-          .once('value', dispatchSnapshot)
+          .once('value', dispatchSnapshot(path))
       );
     });
   };
