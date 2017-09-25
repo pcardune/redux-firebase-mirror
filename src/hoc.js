@@ -5,6 +5,7 @@ import type {Dispatch} from 'redux';
 import {compose} from 'redux';
 
 import {subscribeToValues} from './actions';
+import {getPathSpecKey} from './util';
 
 function ownProps(props) {
   let {
@@ -45,20 +46,22 @@ export function subscribePaths<
             __state: RS,
           };
 
-        constructor(props) {
-          super(props);
-          this.props.__dispatch(subscribeToValues(getPaths(this.props)));
+        componentWillMount() {
+          const paths = getPaths(this.props);
+          this.props.__dispatch(subscribeToValues(paths));
         }
 
-        componentDidUpdate() {
+        componentDidUpdate(prevProps) {
           const paths = getPaths(this.props);
-          // TODO: make this work.
-          // in theory we should have already subscribed to the values in the prev paths
-          // but that doesn't seem to be happening for some reason I do not yet understand.
-          // so to play it safe, ditch this micro-opitmization for now.
-          // const prevPaths = new Set(mapPropsToPaths(this.props.state, prevProps));
-          // const newPaths = paths.filter(path => !prevPaths.has(path));
-          this.props.__dispatch(subscribeToValues(paths));
+          const prevPaths = new Set(
+            mapPropsToPaths(prevProps.__state, ownProps(prevProps)).map(
+              getPathSpecKey
+            )
+          );
+          const newPaths = paths.filter(
+            path => !prevPaths.has(getPathSpecKey(path))
+          );
+          this.props.__dispatch(subscribeToValues(newPaths));
         }
 
         render() {

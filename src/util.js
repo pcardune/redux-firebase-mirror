@@ -11,6 +11,25 @@ export function normalizePath(path) {
   return path;
 }
 
+export function getPathSpecKey(pathSpec) {
+  if (typeof pathSpec === 'string') {
+    return normalizePath(pathSpec);
+  }
+  const {path, filter = {}, orderByKey, orderByChild, orderByValue} = pathSpec;
+  const {limitToLast, limitToFirst, endAt, startAt, equalTo} = filter;
+  return [
+    normalizePath(path),
+    limitToLast,
+    limitToFirst,
+    endAt,
+    startAt,
+    equalTo,
+    orderByKey,
+    orderByChild,
+    orderByValue,
+  ].join('|');
+}
+
 export function splitPath(path) {
   return normalizePath(path).split('/');
 }

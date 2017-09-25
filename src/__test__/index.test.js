@@ -50,7 +50,7 @@ describe('The redux-firebase-mirror module', () => {
       it('should return a list of keys for a path that has been fetched', () => {
         store.dispatch({
           type: RECEIVE_SNAPSHOTS,
-          values: {'foo/bar/baz': 1},
+          values: {'foo/bar/baz': {pathSpec: 'foo/bar/baz', value: 1}},
         });
         expect(getKeysAtPath(store.getState(), 'foo')).toEqual(['bar']);
         expect(getKeysAtPath(store.getState(), 'foo/bar')).toEqual(['baz']);
@@ -66,7 +66,10 @@ describe('The redux-firebase-mirror module', () => {
       it('returns true for paths that have been fetched, even if they returned undefined', () => {
         store.dispatch({
           type: RECEIVE_SNAPSHOTS,
-          values: {foo: undefined, bar: 1},
+          values: {
+            foo: {pathSpec: 'foo', value: undefined},
+            bar: {pathSpec: 'bar', value: 1},
+          },
         });
         expect(hasReceivedValue(store.getState(), 'bar')).toBe(true);
       });
@@ -80,7 +83,7 @@ describe('The redux-firebase-mirror module', () => {
       it('should return the value when it has been fetched', () => {
         store.dispatch({
           type: RECEIVE_SNAPSHOTS,
-          values: {'foo/bar/baz': 1},
+          values: {'foo/bar/baz': {pathSpec: 'foo/bar/baz', value: 1}},
         });
         const foo = getValueAtPath(store.getState(), 'foo');
         if (foo instanceof Immutable.Map) {
@@ -132,7 +135,7 @@ describe('The redux-firebase-mirror module', () => {
       it('will cause the caching storage reducer to be called', () => {
         store.dispatch({
           type: RECEIVE_SNAPSHOTS,
-          values: {'foo/bar/baz': 1},
+          values: {'foo/bar/baz': {pathSpec: 'foo/bar/baz', value: 1}},
         });
         expect(storage.setItem).toHaveBeenCalledWith(
           'firebase-mirror:foo/bar/baz',
@@ -206,7 +209,7 @@ describe('The redux-firebase-mirror module', () => {
             fromCache: true,
             type: RECEIVE_SNAPSHOTS,
             values: {
-              foo: 'value of firebase-mirror:foo',
+              foo: {pathSpec: 'foo', value: 'value of firebase-mirror:foo'},
             },
           },
           {paths: ['foo'], type: SUBSCRIBE_TO_VALUES},

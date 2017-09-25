@@ -1,7 +1,7 @@
 import {createSelector} from 'reselect';
 import memoize from 'lodash.memoize';
 import {CONFIG} from './config';
-import {normalizePath} from './util';
+import {normalizePath, getPathSpecKey} from './util';
 
 function getFirebaseState(
   state: *
@@ -18,18 +18,23 @@ const firebaseSubscriptionsSelector = createSelector(
 const subscriptionInformationSelector = createSelector(
   [firebaseSubscriptionsSelector],
   subscriptions =>
-    memoize(path => {
-      path = normalizePath(path);
-      var lastSlash = path.lastIndexOf('/');
-      while (lastSlash >= 0) {
-        var subscriptionInfo = subscriptions.get(path);
-        if (subscriptionInfo) {
-          return subscriptionInfo;
+    memoize(pathSpec => {
+      if (typeof pathSpec === 'string') {
+        // minor optimization.
+        let path = pathSpec;
+        var lastSlash = path.lastIndexOf('/');
+        while (lastSlash >= 0) {
+          var subscriptionInfo = subscriptions.get(path);
+          if (subscriptionInfo) {
+            return subscriptionInfo;
+          }
+          path = normalizePath(path.slice(0, lastSlash));
+          lastSlash = path.lastIndexOf('/');
         }
-        path = normalizePath(path.slice(0, lastSlash));
-        lastSlash = path.lastIndexOf('/');
+        return subscriptions.get(path, null);
       }
-      return subscriptions.get(path, null);
+      const key = getPathSpecKey(pathSpec);
+      return subscriptions.get(key, null);
     }, normalizePath)
 );
 
@@ -47,8 +52,8 @@ export const getDehydratedState = createSelector(
 export const hasReceivedValueSelector = createSelector(
   [subscriptionInformationSelector],
   getSubscriptionInformation =>
-    memoize(path => {
-      const subscriptionInfo = getSubscriptionInformation(path);
+    memoize(pathSpec => {
+      const subscriptionInfo = getSubscriptionInformation(pathSpec);
       return !!(subscriptionInfo && subscriptionInfo.get('lastUpdateTime'));
     }, normalizePath)
 );
@@ -56,21 +61,21 @@ export const hasReceivedValueSelector = createSelector(
 export const isSubscribedToValueSelector = createSelector(
   [subscriptionInformationSelector],
   getSubscriptionInformation =>
-    memoize(path => {
+    memoize(pathSpec => {
       // TODO: since we are pretending to have subscribed to all subpaths
       // we should make sure to resubscribe them if we unsubscribe from the
       // parent path!
-      const subscriptionInfo = getSubscriptionInformation(path);
+      const subscriptionInfo = getSubscriptionInformation(pathSpec);
       return !!(subscriptionInfo && subscriptionInfo.get('time'));
     }, normalizePath)
 );
 
-export function isSubscribedToValue(state: any, path: string): boolean {
-  return isSubscribedToValueSelector(state)(path);
+export function isSubscribedToValue(state: any, pathSpec: PathSpec): boolean {
+  return isSubscribedToValueSelector(state)(pathSpec);
 }
 
-export function hasReceivedValue(state: any, path: string): boolean {
-  return hasReceivedValueSelector(state)(path);
+export function hasReceivedValue(state: any, pathSpec: PathSpec): boolean {
+  return hasReceivedValueSelector(state)(pathSpec);
 }
 
 export const getFirebaseMirror = createSelector(

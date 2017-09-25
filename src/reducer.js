@@ -3,7 +3,7 @@ import {combineReducers} from 'redux-immutable';
 import * as Immutable from 'immutable';
 
 import type {StorageAPI} from './types';
-import {normalizePath} from './util';
+import {normalizePath, getPathSpecKey} from './util';
 import {
   RECEIVE_SNAPSHOTS,
   UNSUBSCRIBE_FROM_VALUES,
@@ -17,9 +17,9 @@ export default <M, V>(storageAPI: StorageAPI<M, V>) =>
       switch (action.type) {
         case RECEIVE_SNAPSHOTS:
           return state.withMutations(state => {
-            Object.keys(action.values).forEach(path => {
+            Object.values(action.values).forEach(({pathSpec}) => {
               state.setIn(
-                [normalizePath(path), 'lastUpdateTime'],
+                [getPathSpecKey(pathSpec), 'lastUpdateTime'],
                 new Date().getTime()
               );
             });
@@ -27,12 +27,12 @@ export default <M, V>(storageAPI: StorageAPI<M, V>) =>
         case SUBSCRIBE_TO_VALUES:
           return state.withMutations(state => {
             action.paths.forEach(path =>
-              state.setIn([normalizePath(path), 'time'], new Date().getTime())
+              state.setIn([getPathSpecKey(path), 'time'], new Date().getTime())
             );
           });
         case UNSUBSCRIBE_FROM_VALUES:
           return state.withMutations(state => {
-            action.paths.forEach(path => state.deleteIn(normalizePath(path)));
+            action.paths.forEach(path => state.deleteIn(getPathSpecKey(path)));
           });
         case REHYDRATE:
           return Immutable.fromJS(action.data.subscriptions);
@@ -46,8 +46,21 @@ export default <M, V>(storageAPI: StorageAPI<M, V>) =>
         state = storageAPI.getInitialMirror();
       }
       switch (action.type) {
-        case RECEIVE_SNAPSHOTS:
-          return storageAPI.setValues(state, action.values);
+        case RECEIVE_SNAPSHOTS: {
+          const values = {};
+          Object.values(action.values).forEach(({pathSpec, value}) => {
+            if (typeof pathSpec === 'string') {
+              values[pathSpec] = value;
+            } else {
+              let existing = values[pathSpec.path] || {};
+              existing = {...existing, ...value};
+              Object.keys(value).forEach(childKey => {
+                values[pathSpec.path + '/' + childKey] = value[childKey];
+              });
+            }
+          });
+          return storageAPI.setValues(state, values);
+        }
         case REHYDRATE:
           return Immutable.fromJS(action.data.mirror);
         default:

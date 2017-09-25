@@ -26,7 +26,7 @@ describe('cachingStorageReducer', () => {
       reducer(undefined, {
         type: RECEIVE_SNAPSHOTS,
         values: {
-          'foo/bar': {id: 1, name: 'paul'},
+          'foo/bar': {pathSpec: 'foo/bar', value: {id: 1, name: 'paul'}},
         },
       });
       expect(global.localStorage.setItem).toHaveBeenCalledWith(

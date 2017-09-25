@@ -102,6 +102,7 @@ export const RECEIVE_SNAPSHOTS = actions.RECEIVE_SNAPSHOTS;
 export const UNSUBSCRIBE_FROM_VALUES = actions.UNSUBSCRIBE_FROM_VALUES;
 export const SUBSCRIBE_TO_VALUES = actions.SUBSCRIBE_TO_VALUES;
 
+export const receiveSnapshots = actions.receiveSnapshots;
 export const subscribeToValues = actions.subscribeToValues;
 export const fetchValues = actions.fetchValues;
 export const unsubscribeFromValues = actions.unsubscribeFromValues;
