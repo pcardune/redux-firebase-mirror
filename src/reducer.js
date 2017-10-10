@@ -17,7 +17,8 @@ export default <M, V>(storageAPI: StorageAPI<M, V>) =>
       switch (action.type) {
         case RECEIVE_SNAPSHOTS:
           return state.withMutations(state => {
-            Object.values(action.values).forEach(({pathSpec}) => {
+            Object.keys(action.values).forEach(key => {
+              const {pathSpec} = action.values[key];
               state.setIn(
                 [getPathSpecKey(pathSpec), 'lastUpdateTime'],
                 new Date().getTime()
@@ -48,7 +49,8 @@ export default <M, V>(storageAPI: StorageAPI<M, V>) =>
       switch (action.type) {
         case RECEIVE_SNAPSHOTS: {
           const values = {};
-          Object.values(action.values).forEach(({pathSpec, value}) => {
+          Object.keys(action.values).forEach(key => {
+            const {pathSpec, value} = action.values[key];
             if (typeof pathSpec === 'string') {
               values[pathSpec] = value;
             } else {

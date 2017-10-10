@@ -83,9 +83,11 @@ export function subscribeProps(mapPropsToSubscriptionsMaybeFunc) {
     return compose(
       subscribePaths((state, ownProps) => {
         const subscriptionsMap = mapPropsToSubscriptions(state, ownProps);
-        return Object.values(subscriptionsMap).reduce(
-          (paths, subscription) =>
-            paths.concat(subscription.paths(state, ownProps)),
+        return Object.keys(subscriptionsMap).reduce(
+          (paths, subscriptionKey) =>
+            paths.concat(
+              subscriptionsMap[subscriptionKey].paths(state, ownProps)
+            ),
           []
         );
       }),
