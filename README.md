@@ -5,6 +5,8 @@
 [![styled with prettier](https://img.shields.io/badge/styled_with-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
 
 # redux-firebase-mirror
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/pcardune/redux-firebase-mirror.svg)](https://greenkeeper.io/)
 A library to help you easily mirror firebase data inside a redux store, and use
 that data inside a react application.
 
