@@ -1,6 +1,7 @@
 //@flow
 import React, {Component} from 'react';
-import {mount} from 'enzyme';
+import Enzyme, {mount} from 'enzyme';
+import Adapter from 'enzyme-adapter-react-16';
 import thunkMiddleware from 'redux-thunk';
 import {createStore, applyMiddleware} from 'redux';
 import {Provider} from 'react-redux';
@@ -9,6 +10,8 @@ import reduxFirebaseMirror from '../index';
 import {subscribePaths, subscribeProps} from '../hoc';
 import {SUBSCRIBE_TO_VALUES} from '../constants';
 import Subscription from '../Subscription';
+
+Enzyme.configure({adapter: new Adapter()});
 
 describe('the hoc.js module', () => {
   let store, dispatchedActions, database;
